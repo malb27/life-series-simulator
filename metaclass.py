@@ -8,6 +8,11 @@ class Map():
             self.sectors.append(Sector())
 		# self.bases = []
 
+    def updateSectors(self, num):
+        while (num < self.numsectors):
+            self.sectors.pop()
+            self.numsectors -= 1
+
     def allocateSector(self, players):
         for s in self.sectors:
             s.clearPlayers()
