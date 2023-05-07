@@ -28,8 +28,12 @@ class Sector():
 
     def addPlayer(self, player):
         if player.isHostile():
-            self.hostile.append(player)
-        self.players.append(player)
+            self.hostile.insert(random.randint(0, len(self.hostile)), player) if len(self.hostile) > 0 else self.hostile.append(player)
+        #self.players.append(player)
+        self.players.insert(random.randint(0, len(self.players)), player) if len(self.players) > 0 else self.players.append(player)
+
+    def shufflePlayers(self):
+        random.shuffle(self.players)
 
     def clearPlayers(self):
         self.players = []
