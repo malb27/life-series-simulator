@@ -1,13 +1,13 @@
 import math
 import random
 
-from functools import reduce
-
 from metaclass import Map
 from playerclass import Player, Alliance
 from rulesets import ThirdLife
+from signallers import Signaller
 
 HOURS = 3
+sig = Signaller()
 
 class Game():
     def __init__(self):
@@ -40,13 +40,13 @@ class Game():
         return max(5, rel) if rel > 0 else min(-5, rel)
     
     def playerElimination(self, p):
-        print("[X] {player} has been eliminated!".format(player = p.getName()))
+        sig.playerEliminated(p.getName())
         self.players.remove(p)
         a = p.getAlliance()
         if (p.leaveAlliance()):
             self.alliances.remove(a)
 
-    def generateSides(self, a, d, players):
+    def generateConflictSides(self, a, d, players):
         players.remove(a)
         players.remove(d)
         attackers = [a]
@@ -97,56 +97,77 @@ class Game():
                 val = 0 if self.getRelationship(h, p) == -5 else random.randint(0, 5+self.getRelationship(h, p))
                 if val == 0 and h.getIndex() != p.getIndex():
                     print("{attacker} attacks {defender}!".format(attacker = h.getName(), defender = p.getName()))
-                    s1, s2 = self.generateSides(h, p, players)
+                    s1, s2 = self.generateConflictSides(h, p, players)
                     self.battle(s1, s2)
                     return True
         return False
+    
+    def generateSinglePlayerEvent(self, player):
+        match random.randint(1,10):
+            case 1:
+                pass
+            case _:
+                sig.filler([player], [], [], self.session)
 
-    def generateEvent(self, players):
-        def test(x, y):
-            return x + ", " + y
-        
-        if len(self.players) > len(players) > 1 and random.randrange(0,HOURS-1) == 0 and all(p.getAlliance() == None for p in players):
-            playStr = map(lambda x: x.getName(), players)
-            print("[+]", reduce(test, playStr), "have made an alliance!")
+    def generateEvent(self, players):    
+        if len(players) == 1:
+            self.generateSinglePlayerEvent(players[0])
+            return
+
+        if len(self.players) > len(players) and random.randrange(0,HOURS-1) == 0 and all(p.getAlliance() == None for p in players):
             name = []
             for p in players:
                 name.append(p.getName()[0])
             name = ''.join(name)
+            sig.allianceCreate(Player.getNameString(players), name)
 
             ally = Alliance(name, players)
             for p in players:
                 p.setAlliance(ally)
             self.alliances.append(ally)
             return
-        # lambda x, y: x.getName() + ", " + y.getName()
-        # Stub
-        rand = random.randint(1,10)
-        match rand:
-            case 1:
-                pass
-
-        if len(self.players) > 3 and random.randint(0, 3) == 0:
-            # rocks fall everyone dies
-            for p in players:
-                print("[-] {player} fell out of the world".format(player = p.getName()))
-                if (self.rule.playerDeath(p)):
-                    self.playerElimination(p)
+        
+        # Push event generation to rulesets potentially in future?
+        # Lots of repeated code even with template structure, tweaking will be difficult
+        s1, s2 = self.generateSides(players)
+        match random.randint(1,10):
+            case f if f in [1,8]:
+                sig.filler(players, s1, s2, self.session)
+            # case n if n in [4,5]:
+            #     pass
+            # case p if p in [6,7]:
+            #     pass
+            # case 8:
+            #     pass
+            # case 9:
+            #     pass
+            case d if d in [9,10]:
+                sig.playerDeath(s1)
+                for p in s1:
+                    if (self.rule.playerDeath(p)):
+                        self.playerElimination(p)
+                sig.filler(s2, s2, [], self.session)
 
     def runDay(self):
         self.session += 1
         self.map.updateSectors(math.ceil(len(self.players)/2))
         print("\n. : Session {num} : .".format(num = self.session))
         for i in range(0, HOURS):
+            # print(" ! Hour {num} !".format(num = i))
             if (self.runHour(self.map.allocateSector(self.players))):
-                print("Game End: Winner is {player}".format(player = self.players[0].getName()))
+                print("\n[ [ Game End: Winner is {player} ] ]".format(player = self.players[0].getName()))
                 return True
         return False
 
     def runHour(self, sectors):
         for s in sectors:
+            # print("----------------------------------")
             hostile = s.getHostile()
             players = s.getPlayers()
+            # if (len(players) != 0):
+            #     print(Player.getNameString(players))
+            if len(players) == 0:
+                continue
             if len(hostile) > 0:
                 if (self.generateConflict(players, hostile)):
                     continue
@@ -158,6 +179,23 @@ class Game():
         if len(self.players) < 2:
             return True
         return False
+    
+    @staticmethod
+    def generateSides(players):
+        playerSet = set(players)
+
+        s1 = set(random.choices(players, k=random.randrange(1, len(players))))
+        s2 = list(playerSet - s1)
+        s1 = list(s1)
+
+        return s1, s2
+
+        # split = random.randrange(0, len(players))
+        # return players[:split], players[split:]
+        # sides = [[], []]
+        # for p in players:
+        #     sides[random.randrange(0, 2)].append(p)
+        # return sides[0], sides[1]
 
 if __name__ == "__main__":
     game = Game()

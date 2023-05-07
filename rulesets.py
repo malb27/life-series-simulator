@@ -12,7 +12,7 @@ class ThirdLife():
         if p.getLives() == 0:
             return True
         if p.getLives() == 1:
-            print ("{player} is now red!".format(player = p.getName()))
+            print ("[!] {player} is now red!".format(player = p.getName()))
             p.setHostile(True)
         return False
     

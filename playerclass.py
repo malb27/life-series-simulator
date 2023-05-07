@@ -1,6 +1,8 @@
 import math
 import random
 
+from functools import reduce
+
 class Player():
     def __init__(self, index, name, lives):
         self.index = index
@@ -44,6 +46,17 @@ class Player():
                 return True
             self.alliance = None
         return False
+    
+    @staticmethod
+    def getNameString(players):
+        if len(players) == 1:
+            return players[0].getName()
+        # last = players.pop()
+        def combine(x, y):
+            return x + ", " + y
+        playStr = map(lambda x: x.getName(), players[:-1])
+        return reduce(combine, playStr) + " and " + players[-1].getName()
+
 
 class Alliance():
     def __init__(self, name, members):
