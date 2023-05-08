@@ -48,11 +48,16 @@ class Player():
     def leaveAlliance(self, relations):
         if (self.alliance != None):
             self.alliance.removeMember(self)
-            if self.alliance.disband(relations):
+            if relations and self.alliance.disband(relations):
                 self.alliance = None
                 return True
             self.alliance = None
         return False
+    
+    # def leaveAlliance(self):
+    #     if (self.alliance != None):
+    #         self.alliance.removeMember(self)
+    #         self.alliance = None
     
     @staticmethod
     def getNameString(players):
@@ -98,26 +103,33 @@ class Alliance():
         leaving = []
 
         for i, val in enumerate(perceptions):
-            if val < -4:
+            if val <= -len(self.members):
                 kicked.append(self.members[i])
 
         for i, val in enumerate(individual):
-            if val < -3:
+            if val < -len(self.members):
                 leaving.append(self.members[i])
 
-        print("{name}: {p}, {i}, {o}".format(name = self.name, p = perceptions, i = individual, o = overall))
+        for k in kicked:
+            k.leaveAlliance([])
+            print("{p} was kicked from {ally}.".format(p = k.getName(), ally = self.name))
 
-        if overall < -len(self.members) or len(kicked + leaving) > len(self.members) - 1:
+        for i in leaving:
+            i.leaveAlliance([])
+            print("{p} has left {ally}.".format(p = i.getName(), ally = self.name))
+
+        # print("{name}: {p}, {i}, {o}".format(name = self.name, p = perceptions, i = individual, o = overall))
+
+        if overall < -len(self.members+kicked+leaving) or len(kicked + leaving) >= len(self.members):
             return True
 
         return False
 
     def disband(self, relations):
-        # if len(self.getMembers()) < 1 or random.randrange(0, len(self.getMembers())**2) == 0:
         if len(self.getMembers()) < 2 or self.checkStability(relations):
             for p in self.members:
                 p.setAlliance(None)
-            print("{alliance} has fallen apart...".format(alliance = self.name))
+            print("[?] {alliance} has fallen apart...".format(alliance = self.name))
             return True
         return False
     

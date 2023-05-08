@@ -93,7 +93,7 @@ class Game():
             else:
                 a = random.choice(winning)
                 sig.playerKilled(p, a)                
-                self.relationships[p.getIndex()][a.getIndex()] -= random.randint(1,3)
+                self.relationships[p.getIndex()][a.getIndex()] -= random.randint(1,3) + 2 if p.getAlliance() != None and p.getAlliance() == d.getAlliance() else 0
                 if (self.rule.playerKill(p, a)):
                     self.playerElimination(p)
                 a.incKills()
@@ -103,9 +103,9 @@ class Game():
         # If any land on 0, conflict - otherwise return False
         for h in hostile:
             for p in players:
-                val = 0 if self.getRelationship(h, p) == -5 else random.randint(0, 5+self.getRelationship(h, p))
+                val = 0 if self.getRelationship(h, p) == -5 else random.randint(0, 5+self.getRelationship(h, p)) - p.getLives()
                 # print(val, self.getRelationship(h, p), h.getName(), p.getName())
-                if val == 0 and h.getIndex() != p.getIndex():
+                if val <= 0 and h.getIndex() != p.getIndex():
                     s1, s2 = self.generateConflictSides(h, p, players)
                     self.battle(s1, s2)
                     return True
@@ -180,13 +180,14 @@ class Game():
                 sig.statsEnd(self.players, self.eliminated)
                 return True
 
+        # Relationship Decay
         if self.session % 3:
             self.decayRelationships()    
         
         sig.stats(self.players, self.eliminated)
 
-        for p in self.relationships:
-            print(p)
+        # for p in self.relationships:
+        #     print(p)
 
         return False
 
@@ -201,15 +202,18 @@ class Game():
                 continue
             if len(hostile) > 0:
                 if (self.generateConflict(players, hostile)):
+                    if len(self.players) < 2:
+                        return True
                     continue
             self.generateEvent(players)
 
         if len(self.players) < 2:
             return True
 
-        # > Alliance stability
+        # Alliance stability
         for a in self.alliances:
-            a.disband(self.relationships)
+            if (a.disband(self.relationships)):
+                self.alliances.remove(a)
 
         return False
         
@@ -227,7 +231,7 @@ if __name__ == "__main__":
     game = Game()
     rule = ThirdLife(game)
     game.setRules(rule)
-    players = input("Players: ").split(" ")
+    players = input("Players: ").split(", ")
     for p in players:
         game.addPlayer(p)
     game.init()
