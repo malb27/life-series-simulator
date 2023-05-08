@@ -1,4 +1,5 @@
-from playerclass import Player
+from playerManagement import Player
+from signallers import sig
 
 class ThirdLife():
     def __init__(self, game):
@@ -12,7 +13,7 @@ class ThirdLife():
         if p.getLives() == 0:
             return True
         if p.getLives() == 1:
-            print ("[!] {player} is now red!".format(player = p.getName()))
+            sig.playerRed(p.getName())
             p.setHostile(True)
         return False
     

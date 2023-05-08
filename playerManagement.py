@@ -1,7 +1,7 @@
 import math
 import random
 
-from functools import reduce
+from signallers import sig
 
 class Player():
     def __init__(self, index, name, lives):
@@ -53,21 +53,6 @@ class Player():
                 return True
             self.alliance = None
         return False
-    
-    # def leaveAlliance(self):
-    #     if (self.alliance != None):
-    #         self.alliance.removeMember(self)
-    #         self.alliance = None
-    
-    @staticmethod
-    def getNameString(players):
-        if len(players) == 1:
-            return players[0].getName()
-        # last = players.pop()
-        def combine(x, y):
-            return x + ", " + y
-        playStr = map(lambda x: x.getName(), players[:-1])
-        return reduce(combine, playStr) + " and " + players[-1].getName()
 
 
 class Alliance():
@@ -112,15 +97,14 @@ class Alliance():
 
         for k in kicked:
             k.leaveAlliance([])
-            print("{p} was kicked from {ally}.".format(p = k.getName(), ally = self.name))
+            sig.allianceKick(k.getName(), self.name)
 
         for i in leaving:
             i.leaveAlliance([])
-            print("{p} has left {ally}.".format(p = i.getName(), ally = self.name))
+            sig.allianceLeave(i.getName(), self.name)
 
-        # print("{name}: {p}, {i}, {o}".format(name = self.name, p = perceptions, i = individual, o = overall))
-
-        if overall < -len(self.members+kicked+leaving) or len(kicked + leaving) >= len(self.members):
+        if (overall < -len(self.members+kicked+leaving)
+                or len(kicked + leaving) >= len(self.members)):
             return True
 
         return False
@@ -129,10 +113,11 @@ class Alliance():
         if len(self.getMembers()) < 2 or self.checkStability(relations):
             for p in self.members:
                 p.setAlliance(None)
-            print("[?] {alliance} has fallen apart...".format(alliance = self.name))
+            sig.allianceDisband(self.name)
             return True
         return False
     
     @staticmethod
     def getAllianceBonus(p1, p2):
-        return p1.getAlliance().getStrength() if p1.getAlliance() == p2.getAlliance else 0
+        return (p1.getAlliance().getStrength() 
+                if p1.getAlliance() == p2.getAlliance else 0)
