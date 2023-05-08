@@ -3,7 +3,7 @@ Flavour for player deaths, outside of PVP.
 """
 
 ONE_PERSON = [
-    "{p} reinacted the science bros. ({p} fell from a high place)",
+    "{p} reenacted the science bros. ({p} fell from a high place)",
     "{p} slipped. ({p} fell from a high place)",
     "{p} was unlucky when caving. ({p} was slain by Zombie)",
     "{p} was unlucky when caving. ({p} was slain by Spider)",
@@ -15,7 +15,7 @@ ONE_PERSON = [
     "{p} was ambushed at night. ({p} was slain by Enderman)",
     "{p} was ambushed at night. ({p} was shot by Skeleton)",
     "{p} was ambushed at night. ({p} was blown up by Creeper)",
-    "{p} shouldn't have dug straight down. ({p} tried to swim in lava)"
+    "{p} shouldn't have dug straight down. ({p} tried to swim in lava)",
     "{p} fell in lava, and couldn't escape. ({p} tried to swim in lava)",
     "{p} fell in lava and escaped, but couldn't put themselves out. ({p} burned to death)",
     "{p}'s nether raid went horribly wrong. ({p} was fireballed by Blaze)",

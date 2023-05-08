@@ -13,6 +13,7 @@ class Game():
     def __init__(self):
         self.rule = None
         self.players = []
+        self.eliminated = []
         self.alliances = []
         self.map = None
         self.relationships = []
@@ -31,19 +32,23 @@ class Game():
     def setRules(self,rule):
         self.rule = rule
 
-    def setRelationship(self, p1, p2, val):
-        self.relationships[p1.getIndex()][p2.getIndex()] = val  
-
     def getRelationship(self, p1, p2):
         # add boogey penalty later
         rel = self.relationships[p1.getIndex()][p2.getIndex()] + Alliance.getAllianceBonus(p1,p2)
-        return max(5, rel) if rel > 0 else min(-5, rel)
+        return min(5, rel) if rel > 0 else max(-5, rel)
+    
+    def decayRelationships(self):
+        for i, p in enumerate(self.relationships):
+            for j in range(0, len(p)):
+                val = self.relationships[i][j]
+                self.relationships[i][j] -= int(val/abs(val)) if val != 0 and random.randint(0,1) == 0 else 0
     
     def playerElimination(self, p):
         sig.playerEliminated(p.getName())
         self.players.remove(p)
+        self.eliminated.insert(0, p)
         a = p.getAlliance()
-        if (p.leaveAlliance()):
+        if (p.leaveAlliance(self.relationships)):
             self.alliances.remove(a)
 
     def generateConflictSides(self, a, d, players):
@@ -52,21 +57,25 @@ class Game():
         attackers = [a]
         defenders = [d]
         if len(players) == 0:
+            self.relationships[defenders[0].getIndex()][attackers[0].getIndex()] -= random.randint(0,1)
+            sig.playerFight(attackers, defenders)
             return attackers, defenders
 
         for p in players:
             arel = self.getRelationship(p, a)
             drel = self.getRelationship(p, d)
             if p.getAlliance() != None and p.getAlliance() == d.getAlliance():
-                print("{defender} rushes in to defend their fellow {alliance} member, {player}!".format(defender = p.getName(), alliance = p.getAllianceName(), player = d.getName()))
                 defenders.append(p)
             elif drel == 5 or random.randint(0,5-drel) == 0:
-                print("{defender} jumps in to defend {player}!".format(defender = p.getName(), player = d.getName()))
                 defenders.append(p)
             elif p.isHostile() and (arel == 5 or random.randint(0, 5-arel) == 0):
-                print("{attacker} joins {player}!".format(attacker = p.getName(), player = a.getName()))
                 attackers.append(p)
 
+        for d in defenders:
+            for a in attackers:
+                self.relationships[d.getIndex()][a.getIndex()] -= random.randint(0,1)
+
+        sig.playerFight(attackers, defenders)
         return attackers, defenders
 
     def battle(self, offence, defence):
@@ -80,14 +89,14 @@ class Game():
 
         for p in losing:
             if random.randint(0, len(offence)) == 0:
-                print("{player} barely escapes with their life".format(player = p.getName()))
-                pass
+                sig.playerEscape(p, winning)
             else:
                 a = random.choice(winning)
-                print("[-] {player} was slain by {attacker}".format(player = p.getName(), attacker = a.getName()))
-                self.setRelationship(p, a, self.relationships[p.getIndex()][a.getIndex()]-random.randint(1,3))
+                sig.playerKilled(p, a)                
+                self.relationships[p.getIndex()][a.getIndex()] -= random.randint(1,3)
                 if (self.rule.playerKill(p, a)):
                     self.playerElimination(p)
+                a.incKills()
 
     def generateConflict(self, players, hostile):
         # For each hostile, RNG 0-5 + relation with each opponent
@@ -95,21 +104,30 @@ class Game():
         for h in hostile:
             for p in players:
                 val = 0 if self.getRelationship(h, p) == -5 else random.randint(0, 5+self.getRelationship(h, p))
+                # print(val, self.getRelationship(h, p), h.getName(), p.getName())
                 if val == 0 and h.getIndex() != p.getIndex():
-                    print("{attacker} attacks {defender}!".format(attacker = h.getName(), defender = p.getName()))
                     s1, s2 = self.generateConflictSides(h, p, players)
                     self.battle(s1, s2)
                     return True
         return False
     
     def generateSinglePlayerEvent(self, player):
-        match random.randint(1,10):
+        match random.randint(1,5):
             case 1:
-                pass
+                sig.playerDeath([player])
+                if (self.rule.playerDeath(player)):
+                    self.playerElimination(player)
             case _:
                 sig.filler([player], [], [], self.session)
 
-    def generateEvent(self, players):    
+    def generateEvent(self, players):   
+        def relationUpdate(s1, s2, sign, amount):
+            for p1 in s2:
+                    for p2 in s1:
+                        self.relationships[p1.getIndex()][p2.getIndex()] += sign*random.randint(amount[0],amount[1])
+                        if sign > 0:
+                            self.relationships[p2.getIndex()][p1.getIndex()] += random.randint(amount[0],amount[1])
+
         if len(players) == 1:
             self.generateSinglePlayerEvent(players[0])
             return
@@ -130,18 +148,22 @@ class Game():
         # Push event generation to rulesets potentially in future?
         # Lots of repeated code even with template structure, tweaking will be difficult
         s1, s2 = self.generateSides(players)
-        match random.randint(1,10):
-            case f if f in [1,8]:
+        match random.randint(1,15):
+            case f if 1 <= f <= 5:
                 sig.filler(players, s1, s2, self.session)
-            # case n if n in [4,5]:
-            #     pass
-            # case p if p in [6,7]:
-            #     pass
-            # case 8:
-            #     pass
-            # case 9:
-            #     pass
-            case d if d in [9,10]:
+            case n if n in [6,7]:
+                sig.eventMinorPos(s1, s2)
+                relationUpdate(s1, s2, 1, [1,2])
+            case p if p in [8,9]:
+                sig.eventMinorNeg(s1, s2)
+                relationUpdate(s1, s2, -1, [1,2])
+            case 10:
+                sig.eventMajorPos(s1, s2)
+                relationUpdate(s1, s2, 1, [3,4])
+            case 11:
+                sig.eventMajorNeg(s1, s2)
+                relationUpdate(s1, s2, -1, [3,4])
+            case d if 12 <= d <= 15:
                 sig.playerDeath(s1)
                 for p in s1:
                     if (self.rule.playerDeath(p)):
@@ -155,8 +177,17 @@ class Game():
         for i in range(0, HOURS):
             # print(" ! Hour {num} !".format(num = i))
             if (self.runHour(self.map.allocateSector(self.players))):
-                print("\n[ [ Game End: Winner is {player} ] ]".format(player = self.players[0].getName()))
+                sig.statsEnd(self.players, self.eliminated)
                 return True
+
+        if self.session % 3:
+            self.decayRelationships()    
+        
+        sig.stats(self.players, self.eliminated)
+
+        for p in self.relationships:
+            print(p)
+
         return False
 
     def runHour(self, sectors):
@@ -173,13 +204,15 @@ class Game():
                     continue
             self.generateEvent(players)
 
-        # > Alliance stability
-        # > Relationship decay
-
         if len(self.players) < 2:
             return True
+
+        # > Alliance stability
+        for a in self.alliances:
+            a.disband(self.relationships)
+
         return False
-    
+        
     @staticmethod
     def generateSides(players):
         playerSet = set(players)
@@ -189,13 +222,6 @@ class Game():
         s1 = list(s1)
 
         return s1, s2
-
-        # split = random.randrange(0, len(players))
-        # return players[:split], players[split:]
-        # sides = [[], []]
-        # for p in players:
-        #     sides[random.randrange(0, 2)].append(p)
-        # return sides[0], sides[1]
 
 if __name__ == "__main__":
     game = Game()

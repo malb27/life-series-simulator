@@ -10,6 +10,7 @@ class Player():
         self.lives = lives
         self.alliance = None
         self.hostile = False
+        self.kills = 0
 
     def setLives(self, lives):
         self.lives = lives
@@ -30,7 +31,7 @@ class Player():
         return self.alliance
     
     def getAllianceName(self):
-        return self.alliance.getName()
+        return self.alliance.getName() if self.alliance != None else "None"
 
     def setHostile(self, hostile):
         self.hostile = hostile
@@ -38,10 +39,16 @@ class Player():
     def isHostile(self):
         return self.hostile
     
-    def leaveAlliance(self):
+    def getKills(self):
+        return self.kills
+    
+    def incKills(self):
+        self.kills += 1
+    
+    def leaveAlliance(self, relations):
         if (self.alliance != None):
             self.alliance.removeMember(self)
-            if self.alliance.disband():
+            if self.alliance.disband(relations):
                 self.alliance = None
                 return True
             self.alliance = None
@@ -75,12 +82,42 @@ class Alliance():
     
     def getStrength(self):
         return self.strength
-    
-    def disband(self):
-        if len(self.getMembers()) < 1 or random.randrange(0, len(self.getMembers())**2) == 0:
+
+    def checkStability(self, relations):
+        perceptions = [0] * len(self.members)
+        individual = [0] * len(self.members)
+        overall = 0
+        for i, p in enumerate(self.members):
+            for j, t in enumerate(self.members):
+                rel = relations[p.getIndex()][t.getIndex()]
+                individual[i] += rel
+                perceptions[j] += rel
+                overall += rel
+        
+        kicked = []
+        leaving = []
+
+        for i, val in enumerate(perceptions):
+            if val < -4:
+                kicked.append(self.members[i])
+
+        for i, val in enumerate(individual):
+            if val < -3:
+                leaving.append(self.members[i])
+
+        print("{name}: {p}, {i}, {o}".format(name = self.name, p = perceptions, i = individual, o = overall))
+
+        if overall < -len(self.members) or len(kicked + leaving) > len(self.members) - 1:
+            return True
+
+        return False
+
+    def disband(self, relations):
+        # if len(self.getMembers()) < 1 or random.randrange(0, len(self.getMembers())**2) == 0:
+        if len(self.getMembers()) < 2 or self.checkStability(relations):
             for p in self.members:
                 p.setAlliance(None)
-            print("{alliance} has disbanded...".format(alliance = self.name))
+            print("{alliance} has fallen apart...".format(alliance = self.name))
             return True
         return False
     
