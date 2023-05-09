@@ -46,7 +46,7 @@ class Game():
                 self.relationships[i][j] -= int(val/abs(val)) if val != 0 and randint(0,1) == 0 else 0
     
     def playerElimination(self, p):
-        sig.playerEliminated(p.getName())
+        sig.playerEliminated(p)
         self.players.remove(p)
         self.eliminated.insert(0, p)
         a = p.getAlliance()
@@ -186,6 +186,8 @@ class Game():
         sig.gameNextSesh(self.session)
         for i in range(0, HOURS):
             if (self.runHour(self.map.allocateSector(self.players))):
+                sig.statsWin(self.players[0])
+                sig.cont()
                 sig.statsEnd(self.players, self.eliminated)
                 return True
 
@@ -193,7 +195,9 @@ class Game():
         if self.session % 3:
             self.decayRelationships()    
         
+        sig.cont()
         sig.stats(self.players, self.session)
+        sig.cont()
         return False
 
     def runHour(self, sectors):
@@ -228,15 +232,32 @@ class Game():
         s2 = list(playerSet - s1)
         s1 = list(s1)
         return s1, s2
+    
+    # def start(self):
+    #     print("\n-- STARTING LIVES --")
+    #     for p in self.players:
+    #         print("{name}: {n} lives".format(name = p.getName(), n = p.getLives()))
 
 
 if __name__ == "__main__":
     game = Game()
     rule = ThirdLife(game)
     game.setRules(rule)
-    players = input("Players: ").split(", ") # Sanitise if frontend ever made
+    sig.start()
+    players = input("\nPlayers: ").split(", ") # Sanitise if frontend ever made
+
+    # players = []
+    # while (True):
+    #     inp = input()
+    #     if not inp:
+    #         break
+    #     players += inp.split(", ")
+    
     for p in players:
         game.addPlayer(p)
     game.init()
+
+    # game.start()
+
     while not game.runDay():
         continue

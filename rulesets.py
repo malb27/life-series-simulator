@@ -13,7 +13,7 @@ class ThirdLife():
         if p.getLives() == 0:
             return True
         if p.getLives() == 1:
-            sig.playerRed(p.getName())
+            sig.playerRed(p)
             p.setHostile(True)
         return False
     

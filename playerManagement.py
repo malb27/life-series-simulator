@@ -97,11 +97,11 @@ class Alliance():
 
         for k in kicked:
             k.leaveAlliance([])
-            sig.allianceKick(k.getName(), self.name)
+            sig.allianceKick(k, self.name)
 
         for i in leaving:
             i.leaveAlliance([])
-            sig.allianceLeave(i.getName(), self.name)
+            sig.allianceLeave(i, self.name)
 
         if (overall < -len(self.members+kicked+leaving)
                 or len(kicked + leaving) >= len(self.members)):

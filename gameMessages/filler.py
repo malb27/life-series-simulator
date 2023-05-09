@@ -9,24 +9,33 @@ ONE_PERSON = [
     "{p} farms some gunpowder.",
     "{p} crafts some TNT.",
     "{p} makes a basic storage system.",
+    "{p} makes a spyglass.",
+    "{p} tames some wolves.",
+    "{p} tames a cat. They keep it as a pet.",
+    "{p} finds a frog. They keep it as a pet.",
 
     "{p} enchants their gear.",
     "{p} tends to their farm.",
     "{p} raids the server's nether fortress.",
     "{p} crafts some TNT minecarts.",
-    "{p} crafts some end crystals."
+    "{p} crafts some end crystals.",
+    "{p} works on their base.",
 ]
 
 ONE_GROUP = [
     "{g} go caving together.",
     "{g} explore the map as a group.",
     "{g} raid a village.",
+    "{g} play a fun British game :) (no one dies, thankfully)",
 
     "{g} raid the server's nether fortress.",
-    "{g} raid the woodland mansion."
+    "{g} raid the woodland mansion.",
+    "{g} talk about the other alliances.",
 ]
 
 TWO_GROUP = [
     "{g1} run{s} into {g2} in the forest. After some light chatter, they part ways.",
-    "{g1} run{s} into {g2} whilst underground. After some light chatter, they part ways."
+    "{g1} run{s} into {g2} whilst underground. After some light chatter, they part ways.",
+    "{g1} make{s} some lighthearted banter with {g2}.",
+    "{g1} listen{s} in on {g2}'s conversation.",
 ]

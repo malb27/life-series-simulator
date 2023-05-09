@@ -5,6 +5,14 @@ Flavour for player deaths, outside of PVP.
 ONE_PERSON = [
     "{p} reenacted the science bros. ({p} fell from a high place)",
     "{p} slipped. ({p} fell from a high place)",
+    "{p} didn't look where they were going. ({p} fell from a high place)",
+    "{p} fell down a mining hole. ({p} fell from a high place)",
+    "{p} didn't land the bucket clutch. ({p} fell from a high place)",
+    "{p} forgot to check their health before throwing a pearl. ({p} hit the ground too hard)",
+    "{p} forgot to eat. ({p} hit the ground too hard)",
+    "{p} was a little too much to the left. ({p} fell off a ladder)",
+    "{p} was a little too much to the right. ({p} fell off a ladder)",
+    "{p} failed to recreate Sadder-Badder-Ladder. ({p} fell off a ladder)",
     "{p} was unlucky when caving. ({p} was slain by Zombie)",
     "{p} was unlucky when caving. ({p} was slain by Spider)",
     "{p} was unlucky when caving. ({p} was slain by Enderman)",
@@ -28,10 +36,15 @@ ONE_PERSON = [
     "{p}'s mansion raid went horribly wrong. ({p} was shot by Pillager)",
     "{p}'s mansion raid went horribly wrong. ({p} was slain by Vindicator)",
     "{p}'s mansion raid went horribly wrong. ({p} was slain by Vex)",
+    "{p} misclicked. ({p} blew up)",
+    "{p} misjudged how long they could stay underwater. ({p} drowned)",
+    "{p} broke the boat. ({p} was slain by Enderman)",
 ]
 
 ONE_GROUP = [
     "{g} were blown up by a Creeper.",
     "{g} were overwhelmed by mobs whilst caving.",
-    "{g} shouldn't have dug straight down."
+    "{g} shouldn't have dug straight down.",
+    "{g}'s mansion raid was a disaster.",
+    "{g}'s nether raid was a disaster.",
 ]
