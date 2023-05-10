@@ -62,6 +62,10 @@ class CmdSigaller():
     def allianceDisband(self, a):
         print(CmdSigaller.colour("[?] {alliance} has fallen apart...".format(alliance = a), bc.DISBAND))
 
+    def allianceJoin(self, p, a):
+        print(CmdSigaller.colour("[+] {p} has joined {ally}!", bc.ALLIANCE)
+              .format(p = CmdSigaller.getNameString([p]), ally = CmdSigaller.colour(a, bc.ALLIANCE)))
+
     def allianceLeave(self, p, a):
         print("{p} has left {ally}."
               .format(p = CmdSigaller.getNameString([p]), ally = CmdSigaller.colour(a, bc.ALLIANCE)))

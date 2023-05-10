@@ -26,6 +26,8 @@ class Player():
     
     def setAlliance(self, alliance):
         self.alliance = alliance
+        if (alliance):
+            alliance.addMember(self)
     
     def getAlliance(self):
         return self.alliance
@@ -56,9 +58,9 @@ class Player():
 
 
 class Alliance():
-    def __init__(self, name, members):
+    def __init__(self, name):
         self.name = name
-        self.members = members
+        self.members = []
         self.stength = random.randint(1,3)
 
     def getName(self):
@@ -66,6 +68,9 @@ class Alliance():
 
     def getMembers(self):
         return self.members
+    
+    def addMember(self, p):
+        self.members.append(p)
 
     def removeMember(self, p):
         self.members.remove(p)

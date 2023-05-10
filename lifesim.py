@@ -12,6 +12,7 @@ REL_CAP = 5
 class Game():
     def __init__(self):
         self.rule = None
+        self.allPlayers = []
         self.players = []
         self.eliminated = []
         self.alliances = []
@@ -28,6 +29,7 @@ class Game():
     def addPlayer(self, name): # Add support for stats later
         player = Player(len(self.players), name, self.rule.setLives())
         self.players.append(player)
+        self.allPlayers.append(player)
 
     def setRules(self,rule):
         self.rule = rule
@@ -119,8 +121,18 @@ class Game():
         return False
     
     def generateSinglePlayerEvent(self, player):
-        match randint(1,5):
-            case 1:
+        m = max(self.relationships[player.getIndex()])
+        if player.getAlliance() == None and randint(0,HOURS-1) and m >= 0:
+            index = self.relationships[player.getIndex()].index(m)
+            # print(self.allPlayers[index].getName())
+            alliance = self.allPlayers[index].getAlliance()
+            if (alliance):
+                sig.allianceJoin(player, alliance.getName())
+                player.setAlliance(alliance)
+                return
+
+        match randint(1,12):
+            case f if player.getLives() <= f <= 1:
                 sig.playerDeath([player])
                 if (self.rule.playerDeath(player)):
                     self.playerElimination(player)
@@ -149,7 +161,7 @@ class Game():
             name = ''.join(name)
             sig.allianceCreate(players, name)
 
-            ally = Alliance(name, players)
+            ally = Alliance(name)
             for p in players:
                 p.setAlliance(ally)
             self.alliances.append(ally)
@@ -182,7 +194,7 @@ class Game():
 
     def runDay(self):
         self.session += 1
-        self.map.updateSectors(ceil(len(self.players)/2))
+        self.map.updateSectors(ceil(len(self.players)/2.5))
         sig.gameNextSesh(self.session)
         for i in range(0, HOURS):
             if (self.runHour(self.map.allocateSector(self.players))):
