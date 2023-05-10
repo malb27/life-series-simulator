@@ -1,9 +1,6 @@
 TWO_GROUP = [
     "{g1} help{s} {g2} set up a farm.",
     "{g1} come{s} to {g2}'s aid when they were attacked by mobs.",
-    "{g1} assist{s} in patching up some creeper craters in {g2}'s base.",
-    "{g1} assist{s} in patching up some explosion holes in {g2}'s base.",
-    "{g1} assist{s} in patching up some fire damage in {g2}'s base.",
     "{g1} offer{s} a few diamonds to {g2}.",
     "{g1} share{s} some food with {g2}.",
     "{g1} share{s} some iron with {g2}.",

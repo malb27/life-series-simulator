@@ -8,6 +8,4 @@ TWO_GROUP = [
     "{g1} call{s} {g2} washed up.",
     "{g1} imprison{s} {g2} for a few minutes.",
     "{g1} steal{s} {g2}'s pets.",
-    "{g1} set{s} off a piece of TNT in {g2}'s base.",
-    "{g1} flood{s} {g2}'s base with water.",
 ]

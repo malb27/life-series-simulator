@@ -73,7 +73,8 @@ class Game():
             if ((p.getAlliance() != None and p.getAlliance() == d.getAlliance()) 
                     or drel == REL_CAP or randint(0,REL_CAP-drel) == 0):
                 defenders.append(p)
-            elif p.isHostile() and (arel == REL_CAP or randint(0, REL_CAP-arel) == 0):
+            elif (p.isHostile() and ((p.getAlliance() != None and p.getAlliance() == a.getAlliance())
+                    or arel == REL_CAP or randint(0, REL_CAP-arel) == 0)):
                 attackers.append(p)
 
         for d in defenders:
@@ -87,9 +88,9 @@ class Game():
         osum = []
         dsum = []
         for a in offence:
-            osum.append(randint(0,10))
+            osum.append(randint(0,10) + (3-a.getLives()))
         for d in defence:
-            dsum.append(randint(0,10))
+            dsum.append(randint(0,10) + (3-a.getLives()))
         winning, losing = (defence, offence) if sum(osum) < sum(dsum) else (offence, defence)
 
         for p in losing:
@@ -113,7 +114,7 @@ class Game():
                 val = (0 if self.getRelationship(h, p) == -REL_CAP  
                        else randint(0, REL_CAP+self.getRelationship(h, p)) 
                        - p.getLives() 
-                       - floor(8/len(self.players)))
+                       - floor((2*REL_CAP)/len(self.players)))
                 if val <= 0 and h.getIndex() != p.getIndex():
                     s1, s2 = self.generateConflictSides(h, p, players)
                     self.battle(s1, s2)
@@ -125,7 +126,7 @@ class Game():
         if player.getAlliance() == None and m > -REL_CAP and (m > REL_CAP-1 or randint(0,REL_CAP-m)):
             index = self.relationships[player.getIndex()].index(m)
             alliance = self.allPlayers[index].getAlliance()
-            if (alliance and len(alliance.getMembers()) < len(self.players)-1):
+            if (alliance and len(alliance.getMembers()) < ceil(len(self.players)/2)):
                 sig.allianceJoin(player, alliance.getName())
                 player.setAlliance(alliance)
                 return
@@ -136,6 +137,9 @@ class Game():
                 if (self.rule.playerDeath(player)):
                     self.playerElimination(player)
             case _:
+                if (len(self.eliminated) > 0 and randint(0,REL_CAP) == 0):
+                    sig.eventDeadLoot([player], choice(self.eliminated))
+                    return
                 sig.filler([player], [], [], self.session)
 
     def generateEvent(self, players):
@@ -146,6 +150,13 @@ class Game():
                     self.relationships[i1][i2] += sign*randint(amount[0],amount[1])
                     if sign > 0:
                         self.relationships[i2][i1] += randint(amount[0],amount[1])
+
+        def allianceEvent(players, s2, type):
+            if len(players) < 4 and len(self.alliances) > 0:
+                a = choice(self.alliances)
+                sig.eventAlly(players, a.getName(), type)
+                return a.getMembers()
+            return s2
 
         if len(players) == 1:
             self.generateSinglePlayerEvent(players[0])
@@ -167,18 +178,33 @@ class Game():
         s1, s2 = self.generateSides(players)
         match randint(1,15):
             case f if 1 <= f <= 5:
+                if (len(self.eliminated) > 0 and randint(0,REL_CAP) == 0):
+                    sig.eventDeadLoot(players, choice(self.eliminated))
+                    return
                 sig.filler(players, s1, s2, self.session)
             case n if n in [6,7]:
-                sig.eventMinorPos(s1, s2)
+                if randint(0,2) == 0:
+                    s2 = allianceEvent(players, s2, 'ip')
+                else:
+                    sig.event(s1, s2, 'ip')
                 relationUpdate(s1, s2, 1, [1,2])
             case p if p in [8,9]:
-                sig.eventMinorNeg(s1, s2)
+                if randint(0,2) == 0:
+                    s2 = allianceEvent(players, s2, 'in')
+                else:
+                    sig.event(s1, s2, 'in')
                 relationUpdate(s1, s2, -1, [1,2])
             case 10:
-                sig.eventMajorPos(s1, s2)
+                if randint(0,2) == 0:
+                    s2 = allianceEvent(players, s2, 'mp')
+                else:
+                    sig.event(s1, s2, 'mp')
                 relationUpdate(s1, s2, 1, [2,4])
             case 11:
-                sig.eventMajorNeg(s1, s2)
+                if randint(0,2) == 0:
+                    s2 = allianceEvent(players, s2, 'mn')
+                else:
+                    sig.event(s1, s2, 'mn')
                 relationUpdate(s1, s2, -1, [2,4])
             case d if 12 <= d <= 15:
                 sig.playerDeath(s1)

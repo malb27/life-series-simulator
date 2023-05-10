@@ -12,6 +12,7 @@ import gameMessages.majorPositive as majPos
 import gameMessages.majorNegative as majNeg
 
 import gameMessages.allianceName as allyName
+import gameMessages.allianceInteract as allyInt
 
 from os import system
 
@@ -68,10 +69,6 @@ class CmdSigaller():
         
         return name
 
-        # print(CmdSigaller.colour("[+] {players} have made an alliance! {n}", bc.ALLIANCE)
-        #       .format(players = CmdSigaller.getNameString(members),
-        #               n = CmdSigaller.colour('(' + name + ')', bc.ALLIANCE)))
-
     def allianceDisband(self, a):
         print(CmdSigaller.colour("[?] {alliance} has fallen apart...".format(alliance = a), bc.DISBAND))
 
@@ -87,17 +84,45 @@ class CmdSigaller():
         print("{p} was kicked from {ally}."
               .format(p = CmdSigaller.getNameString([p]), ally = CmdSigaller.colour(a, bc.ALLIANCE)))
 
-    def eventMajorPos(self, s1, s2):
-        self.eventHandler([], s1, s2, majPos, '')
+    def event(self, s1, s2, type):
+        set = None
+        match type:
+            case "mp":
+                set = majPos
+            case "mn":
+                set = majNeg
+            case "ip":
+                set = minPos
+            case "in":
+                set = minNeg
+        self.eventHandler([], s1, s2, set, '')
 
-    def eventMajorNeg(self, s1, s2):
-        self.eventHandler([], s1, s2, majNeg, '')
+    def eventAlly(self, g, a, type):
+        set = None
+        match type:
+            case "mp":
+                set = allyInt.MAJPOS
+            case "mn":
+                set = allyInt.MAJNEG
+            case "ip":
+                set = allyInt.MINPOS
+            case "in":
+                set = allyInt.MINNEG
 
-    def eventMinorPos(self, s1, s2):
-        self.eventHandler([], s1, s2, minPos, '')
+        s = 's' if len(g) == 1 else ''
+        s2 = '' if a[-1] == 's' else 's'
+        print(choice(set)
+              .format(g = CmdSigaller.getNameString(g), 
+                      ally = CmdSigaller.colour(a, bc.ALLIANCE),
+                      s = s,
+                      s2 = s2))
 
-    def eventMinorNeg(self, s1, s2):
-        self.eventHandler([], s1, s2, minNeg, '')
+    def eventDeadLoot(self, p, d):
+        s = 's' if len(p) == 1 else ''
+        print("{p} loot{s} {d}'s base for leftover resources."
+              .format(p = CmdSigaller.getNameString(p),
+                      d = CmdSigaller.getNameString([d]),
+                      s = s))
 
     def filler(self, players, s1, s2, sesh):
         if sesh < 3:

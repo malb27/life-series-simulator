@@ -2,6 +2,7 @@ FIRST = [
     "Blue Sword",
     "The Last",
     "The First",
+    "The Real",
     "The Fun",
     "The",
     "Team",
@@ -38,7 +39,9 @@ FIRST = [
     "Coral",
     "Ocean",
     "River",
+    "Village",
     "Nether",
+    "Fortress",
 
     "Castle",
     "Boat",
@@ -75,6 +78,7 @@ SECOND = [
     "Band",
     "Squad",
     "Crew",
+    "Syndicate",
 
     "Coven",
     "Chorus",
@@ -98,4 +102,5 @@ SECOND = [
     "Shields",
     "Banner",
     "Eye",
+    "Flare",
 ]

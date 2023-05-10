@@ -93,11 +93,11 @@ class Alliance():
         leaving = []
 
         for i, val in enumerate(perceptions):
-            if val <= -len(self.members):
+            if val <= -2*len(self.members):
                 kicked.append(self.members[i])
 
         for i, val in enumerate(individual):
-            if val < -len(self.members):
+            if val < -2*len(self.members) and self.members[i] not in kicked:
                 leaving.append(self.members[i])
 
         for k in kicked:
@@ -108,7 +108,7 @@ class Alliance():
             i.leaveAlliance([])
             sig.allianceLeave(i, self.name)
 
-        if (overall < -len(self.members+kicked+leaving)
+        if (overall < -2*len(self.members+kicked+leaving)
                 or len(kicked + leaving) >= len(self.members)):
             return True
 
