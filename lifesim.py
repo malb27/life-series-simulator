@@ -7,7 +7,7 @@ from rulesets import ThirdLife
 from signallers import sig
 
 HOURS = 3
-REL_CAP = 5
+REL_CAP = 10
 
 class Game():
     def __init__(self):
@@ -37,7 +37,7 @@ class Game():
     def getRelationship(self, p1, p2):
         # Add boogey penalty later
         rel = self.relationships[p1.getIndex()][p2.getIndex()] + Alliance.getAllianceBonus(p1,p2)
-        # Actual alliance value can go over -5/5, but returned value is hard capped
+        # Actual relation value can go over -5/5, but returned value is hard capped
         return min(REL_CAP, rel) if rel > 0 else max(-REL_CAP, rel)
     
     # Randomly decay relationships - move values closer to 0
@@ -78,7 +78,7 @@ class Game():
 
         for d in defenders:
             for a in attackers:
-                self.relationships[d.getIndex()][a.getIndex()] -= randint(0,1)
+                self.relationships[d.getIndex()][a.getIndex()] -= randint(3,4)
 
         sig.playerFight(attackers, defenders)
         return attackers, defenders
@@ -99,7 +99,7 @@ class Game():
                 a = choice(winning)
                 sig.playerKilled(p, a)                
                 self.relationships[p.getIndex()][a.getIndex()] -= (randint(1,3) 
-                    + (2 if p.getAlliance() != None and p.getAlliance() == d.getAlliance() 
+                    + (floor(REL_CAP/3) if p.getAlliance() != None and p.getAlliance() == d.getAlliance() 
                     else 0))
                 if (self.rule.playerKill(p, a)):
                     self.playerElimination(p)
@@ -122,11 +122,10 @@ class Game():
     
     def generateSinglePlayerEvent(self, player):
         m = max(self.relationships[player.getIndex()])
-        if player.getAlliance() == None and randint(0,HOURS-1) and m >= 0:
+        if player.getAlliance() == None and m > -REL_CAP and (m > REL_CAP-1 or randint(0,REL_CAP-m)):
             index = self.relationships[player.getIndex()].index(m)
-            # print(self.allPlayers[index].getName())
             alliance = self.allPlayers[index].getAlliance()
-            if (alliance):
+            if (alliance and len(alliance.getMembers()) < len(self.players)-1):
                 sig.allianceJoin(player, alliance.getName())
                 player.setAlliance(alliance)
                 return
@@ -139,7 +138,7 @@ class Game():
             case _:
                 sig.filler([player], [], [], self.session)
 
-    def generateEvent(self, players):   
+    def generateEvent(self, players):
         def relationUpdate(s1, s2, sign, amount):
             for p1 in s2:
                 for p2 in s1:
@@ -155,11 +154,7 @@ class Game():
         # Ensures an alliance between ALL surviving players cannot be made.
         if (len(self.players) > len(players) and randint(0,HOURS-1) == 0
                 and all(p.getAlliance() == None for p in players)):
-            name = []
-            for p in players:
-                name.append(p.getName()[0])
-            name = ''.join(name)
-            sig.allianceCreate(players, name)
+            name = sig.allianceCreate(players)
 
             ally = Alliance(name)
             for p in players:
@@ -181,10 +176,10 @@ class Game():
                 relationUpdate(s1, s2, -1, [1,2])
             case 10:
                 sig.eventMajorPos(s1, s2)
-                relationUpdate(s1, s2, 1, [3,4])
+                relationUpdate(s1, s2, 1, [2,4])
             case 11:
                 sig.eventMajorNeg(s1, s2)
-                relationUpdate(s1, s2, -1, [3,4])
+                relationUpdate(s1, s2, -1, [2,4])
             case d if 12 <= d <= 15:
                 sig.playerDeath(s1)
                 for p in s1:

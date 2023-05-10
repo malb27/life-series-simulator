@@ -11,6 +11,8 @@ import gameMessages.minorNegative as minNeg
 import gameMessages.majorPositive as majPos
 import gameMessages.majorNegative as majNeg
 
+import gameMessages.allianceName as allyName
+
 from os import system
 
 system('color')
@@ -54,10 +56,21 @@ class CmdSigaller():
         print("Enter a list of players separated by commas and spaces. Press ENTER to start the simulator.")
         print("e.g. Player1, Player2, Player3")
 
-    def allianceCreate(self, members, name):
+    def allianceCreate(self, members):
+        first, second = choice(allyName.FIRST), choice(allyName.SECOND)
+        allyName.FIRST.remove(first)
+        allyName.SECOND.remove(second)
+        name = first + " " + second
+
         print(CmdSigaller.colour("[+] {players} have made an alliance! {n}", bc.ALLIANCE)
               .format(players = CmdSigaller.getNameString(members),
-                      n = CmdSigaller.colour('(' + name + ')', bc.ALLIANCE)))
+                      n = CmdSigaller.colour(f'({name})', bc.ALLIANCE)))
+        
+        return name
+
+        # print(CmdSigaller.colour("[+] {players} have made an alliance! {n}", bc.ALLIANCE)
+        #       .format(players = CmdSigaller.getNameString(members),
+        #               n = CmdSigaller.colour('(' + name + ')', bc.ALLIANCE)))
 
     def allianceDisband(self, a):
         print(CmdSigaller.colour("[?] {alliance} has fallen apart...".format(alliance = a), bc.DISBAND))
