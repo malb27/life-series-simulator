@@ -17,7 +17,7 @@ class ThirdLife():
             p.setHostile(True)
         return False
     
-    def playerKill(self, p1, p2):
+    def playerKill(self, p1):
         return self.playerDeath(p1)
 
     def assignBoogey():

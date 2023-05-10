@@ -102,7 +102,7 @@ class Game():
                 self.relationships[p.getIndex()][a.getIndex()] -= (randint(1,3) 
                     + (floor(REL_CAP/3) if p.getAlliance() != None and p.getAlliance() == d.getAlliance() 
                     else 0))
-                if (self.rule.playerKill(p, a)):
+                if (self.rule.playerDeath(p)):
                     self.playerElimination(p)
                 a.incKills()
 
@@ -121,7 +121,7 @@ class Game():
                     return True
         return False
     
-    def generateSinglePlayerEvent(self, player):
+    def generateSinglePlayerEvent(self, player, s):
         m = max(self.relationships[player.getIndex()])
         if player.getAlliance() == None and m > -REL_CAP and (m > REL_CAP-1 or randint(0,REL_CAP-m)):
             index = self.relationships[player.getIndex()].index(m)
@@ -137,12 +137,15 @@ class Game():
                 if (self.rule.playerDeath(player)):
                     self.playerElimination(player)
             case _:
+                if (player.isHostile() and randint(0,1) == 0):
+                    sig.playerTrap(self.map.setTrap(player), player, [], False)
+                    return
                 if (len(self.eliminated) > 0 and randint(0,REL_CAP) == 0):
                     sig.eventDeadLoot([player], choice(self.eliminated))
                     return
                 sig.filler([player], [], [], self.session)
 
-    def generateEvent(self, players):
+    def generateEvent(self, players, s):
         def relationUpdate(s1, s2, sign, amount):
             for p1 in s2:
                 for p2 in s1:
@@ -157,9 +160,23 @@ class Game():
                 sig.eventAlly(players, a.getName(), type)
                 return a.getMembers()
             return s2
+        
+        if s.getTrap() and len(players) < 5 and s.getTrapSetter() not in players:
+            kill, str, a = s.triggerTrap(len(players))
+            sig.playerTrap(str, a, players, kill)
+            if (kill):
+                found = randint(0,1) # Whether the group finds out who set the trap
+                for p in players:
+                    self.relationships[p.getIndex()][a.getIndex()] -= (randint(2,3)*found 
+                        + (floor(REL_CAP/3) if p.getAlliance() != None and p.getAlliance() == a.getAlliance() 
+                        else 0))
+                    if (self.rule.playerDeath(p)):
+                        self.playerElimination(p)
+                    a.incKills()
+            return
 
         if len(players) == 1:
-            self.generateSinglePlayerEvent(players[0])
+            self.generateSinglePlayerEvent(players[0], s)
             return
 
         # Ensures an alliance between ALL surviving players cannot be made.
@@ -244,7 +261,7 @@ class Game():
                     if len(self.players) < 2:
                         return True
                     continue
-            self.generateEvent(players)
+            self.generateEvent(players, s)
 
         # There should always be 1 player left, but the check is present
         # incase something somehow goes wrong

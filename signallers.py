@@ -28,6 +28,7 @@ class bc:
     PURPLE = '\033[95m'
     DARKPURPLE = '\033[35m'
     GREY = '\033[90m'
+    BLUE = '\033[34m'
 
     DEATH = '\033[91m'
     ALLIANCE = '\033[96m'
@@ -159,6 +160,15 @@ class CmdSigaller():
     def playerRed(self, player):
         print(CmdSigaller.colour("[!] {player} is now red!", bc.RED)
               .format(player = CmdSigaller.getNameString([player])))
+        
+    def playerTrap(self, str, player, target, kill):
+        s, w = ('s', "was") if len(target) == 1 else ('', "were")
+        col = bc.DEATH if kill else bc.BLUE
+        print(CmdSigaller.colour(str, col)
+              .format(p = CmdSigaller.getNameString([player]),
+                      w = w,
+                      s = s,
+                      p2 = CmdSigaller.getNameString(target)))
     
     def stats(self, players, i):
         print("\nSESSION {num} STANDINGS:".format(num = i))
@@ -186,6 +196,8 @@ class CmdSigaller():
 
     @staticmethod
     def getNameString(players):
+        if len(players) == 0:
+            return ''
         if len(players) == 1:
             return CmdSigaller.getNameColour(players[0])
         def combine(x, y):
