@@ -67,6 +67,6 @@ class Sector():
         self.trap += trap
         random.shuffle(self.trap)
 
-    def triggerTrap(self, n):
+    def triggerTrap(self, n, tripped):
         trap = self.trap.pop(0)
-        return trap.trigger(n)
+        return trap.trigger(n, tripped)

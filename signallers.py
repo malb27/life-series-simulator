@@ -170,14 +170,40 @@ class CmdSigaller():
                       s = s,
                       p2 = CmdSigaller.getNameString(target)))
     
-    def stats(self, players, i):
-        print("\nSESSION {num} STANDINGS:".format(num = i))
-        players.sort(key=lambda p: p.getLives(), reverse=True)
-        for p in players:
-            print("{name} ({ally}): {lives}"
-                  .format(name = CmdSigaller.getNameString([p]),
-                          ally = p.getAllianceName(),
-                          lives = p.getLives()))
+    def stats(self, players, alliances, i):
+        def printPlayer(p):
+            print("{name}: {lives}"
+                .format(name = CmdSigaller.getNameString([p]),
+                    lives = p.getLives()))
+        
+        print("\n-- SESSION {num} STANDINGS --".format(num = i))
+        playSet = set(players)
+        
+        first = True # need a more elegant way to do this
+        for a in alliances:
+            if not first:
+                print()
+            first = False
+            print(CmdSigaller.colour(a.getName(), bc.ALLIANCE))
+            a.getMembers().sort(key=lambda p: p.getLives(), reverse=True)
+            for p in a.getMembers():
+                printPlayer(p)
+            playSet -= set(a.getMembers())
+
+        if len(playSet) > 0:
+            if len(playSet) < len(players):
+                print(CmdSigaller.colour("\nNo Alliance", bc.ALLIANCE)) 
+            playSet = list(playSet)
+            playSet.sort(key=lambda p: p.getLives(), reverse=True)
+            for p in playSet:
+                printPlayer(p)
+
+        # players.sort(key=lambda p: p.getLives(), reverse=True)
+        # for p in players:
+        #     print("{name} ({ally}): {lives}"
+        #           .format(name = CmdSigaller.getNameString([p]),
+        #                   ally = p.getAllianceName(),
+        #                   lives = p.getLives()))
 
     def statsEnd(self, players, eliminated):
         print("\n-- FINAL STANDINGS --")

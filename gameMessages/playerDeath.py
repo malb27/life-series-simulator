@@ -1,7 +1,3 @@
-"""
-Flavour for player deaths, outside of PVP.
-"""
-
 ONE_PERSON = [
     "{p} reenacted the science bros. ({p} fell from a high place)",
     "{p} slipped. ({p} fell from a high place)",

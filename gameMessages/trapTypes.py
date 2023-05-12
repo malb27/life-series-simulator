@@ -1,7 +1,7 @@
 MINECART = {
     "set": "[~] {p} sets a TNT minecart on a powered rail...",
-    "disarm": "[=] {p}'s TNT minecart was broken by {p2}.",
-    "escape": "[=] {p}'s TNT minecart explodes, but fails to kill {p2}.",
+    "disarm": "[=] {p2} break{s} {p}'s TNT minecart.",
+    "escape": "[=] {p2} trigger{s} {p}'s TNT minecart, but survive{s} the explosion.",
     "kill": "[-] {p2} {w} blown up by {p}'s TNT minecart trap",
 }
 
@@ -35,8 +35,8 @@ OBSERVER = {
 
 DOOR = {
     "set": "[~] {p} carefully pushes a TNT minecart onto a closed door...",
-    "disarm": "[=] {p}'s TNT minecart was broken by {p2}.",
-    "escape": "[=] {p}'s TNT minecart explodes, but fails to kill {p2}.",
+    "disarm": "[=] {p2} break{s} {p}'s TNT minecart.",
+    "escape": "[=] {p2} trigger{s} {p}'s TNT minecart, but survive{s} the explosion.",
     "kill": "[-] {p2} {w} blown up by {p}'s trapped door"
 }
 

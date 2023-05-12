@@ -1,7 +1,3 @@
-"""
-Filler text exclusively for early game.
-"""
-
 ONE_PERSON = [
     "{p} creates a set of basic iron gear.",
     "{p} crafts a shield.",

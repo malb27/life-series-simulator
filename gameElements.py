@@ -20,10 +20,10 @@ class Trap():
     def getPlayer(self):
         return self.player
 
-    def trigger(self, n):
-        if randint(n, MAX_STEALTH) > self.stealth:
-            return False, self.type["disarm"], self.player
-        elif randint(n, MAX_LETHAL) > self.lethality:
-            return False, self.type["escape"], self.player
-        else:
-            return True, self.type["kill"], self.player
+    def trigger(self, n, tripped):
+        if not tripped:
+            if randint(n, MAX_STEALTH) > self.stealth:
+                return False, self.type["disarm"], self.player
+            elif randint(n, MAX_LETHAL) > self.lethality:
+                return False, self.type["escape"], self.player
+        return True, self.type["kill"], self.player
