@@ -6,7 +6,7 @@ from playerManagement import Player, Alliance
 from rulesets import ThirdLife
 from signallers import sig
 
-HOURS = 3
+HOURS = 4
 REL_CAP = 10
 
 class Game():
@@ -185,6 +185,7 @@ class Game():
                     allianceEvent(players, 'mp')
                 case 6:
                     allianceEvent(players, 'mn')
+            return
 
         if len(players) == 1:
             self.generateSinglePlayerEvent(players[0], s)
@@ -227,7 +228,7 @@ class Game():
                 for p in s1:
                     if (self.rule.playerDeath(p)):
                         self.playerElimination(p)
-                sig.filler(s2, s2, [], self.session)
+                # sig.filler(s2, s2, [], self.session)
 
     def runDay(self):
         self.session += 1

@@ -17,4 +17,6 @@ MINPOS = [
 MINNEG = [
     "{g} set{s} off a piece of TNT in {ally}'{s2} base.",
     "{g} flood{s} {ally}'{s2} base with water.",
+    "{g} trample{s} {ally}'{s2} crops.",
+    "{g} steal{s} from {ally}'{s2} chests.",
 ]
