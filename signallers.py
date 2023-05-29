@@ -1,6 +1,10 @@
-from random import randint, choice, shuffle
+"""
+Handles event broadcasting.
+"""
 
+from random import randint, choice
 from functools import reduce
+from os import system
 
 import gameMessages.fillerEarly as fillEarly
 import gameMessages.filler as filler
@@ -14,7 +18,7 @@ import gameMessages.majorNegative as majNeg
 import gameMessages.allianceName as allyName
 import gameMessages.allianceInteract as allyInt
 
-from os import system
+import gameMessages.standardMessages as standMsg
 
 system('color')
 
@@ -37,204 +41,229 @@ class bc:
 
 # Create subclasses later on, as requirements change
 class CmdSigaller():
-    def eventHandler(self, players, s1, s2, source, tag):
+    """Handles command-line output messages to signal events."""
+    def event_handler(self, players, side1, side2, source, tag):
+        """Standard handler for events, regardless of number of players."""
         if len(players) == 1:
             print(tag + choice(source.ONE_PERSON)
-                  .format(p = CmdSigaller.getNameString(players)))
+                  .format(p = CmdSigaller.get_name_string(players)))
         else:
-            if players and (not s2 or randint(0, len(players)) < 3):
+            if players and (not side2 or randint(0, len(players)) < 3):
                 print(tag*len(players) + choice(source.ONE_GROUP)
-                      .format(g = CmdSigaller.getNameString(players)))
+                      .format(g = CmdSigaller.get_name_string(players)))
             else:
-                s = 's' if len(s1) == 1 else ''
+                plural = 's' if len(side1) == 1 else ''
                 print(tag + choice(source.TWO_GROUP)
-                      .format(g1 = CmdSigaller.getNameString(s1),
-                              g2 = CmdSigaller.getNameString(s2),
-                              s = s))
-    
+                      .format(g1 = CmdSigaller.get_name_string(side1),
+                              g2 = CmdSigaller.get_name_string(side2),
+                              s = plural))
 
     def start(self):
-        print(CmdSigaller.colour("Welcome to the Life Simulator!", bc.PURPLE))
-        print("Enter a list of players separated by commas and spaces. Press ENTER to start the simulator.")
-        print("e.g. Player1, Player2, Player3")
+        """Prints the startup message."""
+        print(CmdSigaller.colour(standMsg.WELCOME, bc.PURPLE))
+        print(standMsg.INSTRUCTIONS)
 
-    def allianceCreate(self, members):
+    def alliance_create(self, members):
+        """Prints the alliance creation message."""
         first, second = choice(allyName.FIRST), choice(allyName.SECOND)
         allyName.FIRST.remove(first)
         allyName.SECOND.remove(second)
         name = first + " " + second
 
-        print(CmdSigaller.colour("[+] {players} have made an alliance! {n}", bc.ALLIANCE)
-              .format(players = CmdSigaller.getNameString(members),
+        print(CmdSigaller.colour(standMsg.ALLIANCE, bc.ALLIANCE)
+              .format(players = CmdSigaller.get_name_string(members),
                       n = CmdSigaller.colour(f'({name})', bc.ALLIANCE)))
-        
+
         return name
 
-    def allianceDisband(self, a):
-        print(CmdSigaller.colour("[?] {alliance} has fallen apart...".format(alliance = a), bc.DISBAND))
+    def alliance_disband(self, alliance):
+        """Prints the alliance disband message."""
+        print(CmdSigaller.colour(standMsg.ALLIANCE_DISBAND
+                                 .format(alliance = alliance), bc.DISBAND))
 
-    def allianceJoin(self, p, a):
-        print(CmdSigaller.colour("[+] {p} has joined {ally}!", bc.ALLIANCE)
-              .format(p = CmdSigaller.getNameString([p]), ally = CmdSigaller.colour(a, bc.ALLIANCE)))
+    def alliance_join(self, player, alliance):
+        """Prints a new player joining an alliance."""
+        print(CmdSigaller.colour(standMsg.ALLIANCE_JOIN, bc.ALLIANCE)
+              .format(p = CmdSigaller.get_name_string([player]),
+                      alliance = CmdSigaller.colour(alliance, bc.ALLIANCE)))
 
-    def allianceLeave(self, p, a):
-        print("{p} has left {ally}."
-              .format(p = CmdSigaller.getNameString([p]), ally = CmdSigaller.colour(a, bc.ALLIANCE)))
+    def alliance_leave(self, player, alliance):
+        """Prints a player leaving an alliance."""
+        print(standMsg.ALLIANCE_LEAVE
+              .format(p = CmdSigaller.get_name_string([player]),
+                      alliance = CmdSigaller.colour(alliance, bc.ALLIANCE)))
 
-    def allianceKick(self, p, a):
-        print("{p} was kicked from {ally}."
-              .format(p = CmdSigaller.getNameString([p]), ally = CmdSigaller.colour(a, bc.ALLIANCE)))
+    def alliance_kick(self, player, alliance):
+        """Prints a player being kicked from an alliance."""
+        print(standMsg.ALLIANCE_KICK
+              .format(p = CmdSigaller.get_name_string([player]),
+                      alliance = CmdSigaller.colour(alliance, bc.ALLIANCE)))
 
-    def event(self, s1, s2, type):
-        set = None
-        match type:
+    def event(self, side1, side2, type_of_event):
+        """Prints the event text."""
+        event_set = None
+        match type_of_event:
             case "mp":
-                set = majPos
+                event_set = majPos
             case "mn":
-                set = majNeg
+                event_set = majNeg
             case "ip":
-                set = minPos
+                event_set = minPos
             case "in":
-                set = minNeg
-        self.eventHandler([], s1, s2, set, '')
+                event_set = minNeg
+        self.event_handler([], side1, side2, event_set, '')
 
-    def eventAlly(self, g, a, type):
-        set = None
-        match type:
+    def event_alliance(self, group, alliance, type_of_event):
+        """Print the alliance event text."""
+        event_set = None
+        match type_of_event:
             case "mp":
-                set = allyInt.MAJPOS
+                event_set = allyInt.MAJPOS
             case "mn":
-                set = allyInt.MAJNEG
+                event_set = allyInt.MAJNEG
             case "ip":
-                set = allyInt.MINPOS
+                event_set = allyInt.MINPOS
             case "in":
-                set = allyInt.MINNEG
+                event_set = allyInt.MINNEG
 
-        s = 's' if len(g) == 1 else ''
-        s2 = '' if a[-1] == 's' else 's'
-        print(choice(set)
-              .format(g = CmdSigaller.getNameString(g), 
-                      ally = CmdSigaller.colour(a, bc.ALLIANCE),
-                      s = s,
-                      s2 = s2))
+        plural1 = 's' if len(group) == 1 else ''
+        plural2 = '' if alliance[-1] == 's' else 's'
+        print(choice(event_set)
+              .format(g = CmdSigaller.get_name_string(group),
+                      ally = CmdSigaller.colour(alliance, bc.ALLIANCE),
+                      s = plural1,
+                      s2 = plural2))
 
-    def eventDeadLoot(self, p, d):
-        s = 's' if len(p) == 1 else ''
-        print("{p} loot{s} {d}'s base for leftover resources."
-              .format(p = CmdSigaller.getNameString(p),
-                      d = CmdSigaller.getNameString([d]),
-                      s = s))
+    def event_deadloot(self, player, dead):
+        """Prints message for looting dead players."""
+        plural = 's' if len(player) == 1 else ''
+        print(standMsg.DEADLOOT
+              .format(p = CmdSigaller.get_name_string(player),
+                      d = CmdSigaller.get_name_string([dead]),
+                      s = plural))
 
-    def filler(self, players, s1, s2, sesh):
+    def filler(self, players, side1, side2, sesh):
+        """Prints filler text."""
         if sesh < 3:
-            self.eventHandler(players, s1, s2, fillEarly, '')
+            self.event_handler(players, side1, side2, fillEarly, '')
             return
-        self.eventHandler(players, s1, s2, filler, '')
+        self.event_handler(players, side1, side2, filler, '')
 
-    def gameNextSesh(self, i):
-        print(CmdSigaller.colour("\n. : Session {num} : .".format(num = i), bc.INFO))
+    def game_next_sesh(self, i):
+        """Prints banner for a new session."""
+        print(CmdSigaller.colour(standMsg.SESSION_HEADER.format(num = i), bc.INFO))
 
-    def playerDeath(self, players):
-        self.eventHandler(players, players, [], playerDeath, CmdSigaller.colour('[-] ', bc.DEATH))
+    def player_death(self, players):
+        """Prints player death message."""
+        self.event_handler(players, players, [], playerDeath, CmdSigaller.colour('[-] ', bc.DEATH))
 
-    def playerEliminated(self, player):
-        print(CmdSigaller.colour("[X] {p} has been eliminated!", bc.DEATH).format(p = player.getName()))
+    def player_eliminated(self, player):
+        """Prints player eliminated message."""
+        print(CmdSigaller.colour(standMsg.ELIMINATION, bc.DEATH)
+              .format(p = player.get_name()))
 
-    def playerEscape(self, player, attackers):
-        s = 's' if len(attackers) > 1 else ''
+    def player_escape(self, player, attackers):
+        """Prints player escaping from combat message."""
+        plural = 's' if len(attackers) > 1 else ''
         print(choice(playerKill.ESCAPES)
-              .format(p = CmdSigaller.getNameString([player]),
-                      s = s,
-                      s2 = 's'.replace(s,''),
-                      a = CmdSigaller.getNameString([choice(attackers)])))
+              .format(p = CmdSigaller.get_name_string([player]),
+                      s = plural,
+                      s2 = 's'.replace(plural,''),
+                      a = CmdSigaller.get_name_string([choice(attackers)])))
 
-    def playerFight(self, s1, s2):
-        print("A fight breaks out between {players}!"
-              .format(players = CmdSigaller.getNameString(s1 + s2)))
+    def player_fight(self, side1, side2):
+        """Prints player fight message."""
+        print(standMsg.FIGHT
+              .format(players = CmdSigaller.get_name_string(side1 + side2)))
 
-    def playerKilled(self, p, a):
+    def player_killed(self, player, attacker):
+        """Prints player killed message."""
         print(CmdSigaller.colour("[-]", bc.DEATH), choice(playerKill.KILLS)
-              .format(p1 = CmdSigaller.getNameString([p]),
-                      p2 = CmdSigaller.getNameString([a])))
-        
-    def playerRed(self, player):
-        print(CmdSigaller.colour("[!] {player} is now red!", bc.RED)
-              .format(player = CmdSigaller.getNameString([player])))
-        
-    def playerTrap(self, str, player, target, kill):
-        s, w = ('s', "was") if len(target) == 1 else ('', "were")
+              .format(p1 = CmdSigaller.get_name_string([player]),
+                      p2 = CmdSigaller.get_name_string([attacker])))
+
+    def player_red(self, player):
+        """Prints player red message."""
+        print(CmdSigaller.colour(standMsg.RED, bc.RED)
+              .format(p = CmdSigaller.get_name_string([player])))
+
+    def player_trap(self, template, player, target, kill):
+        """Prints messages associated with traps being set off."""
+        plural, plural2 = ('s', "was") if len(target) == 1 else ('', "were")
         col = bc.DEATH if kill else bc.BLUE
-        print(CmdSigaller.colour(str, col)
-              .format(p = CmdSigaller.getNameString([player]),
-                      w = w,
-                      s = s,
-                      p2 = CmdSigaller.getNameString(target)))
-    
+        print(CmdSigaller.colour(template, col)
+              .format(p = CmdSigaller.get_name_string([player]),
+                      w = plural2,
+                      s = plural,
+                      p2 = CmdSigaller.get_name_string(target)))
+
     def stats(self, players, alliances, i):
-        def printPlayer(p):
+        """Print end of day stats."""
+        def print_player(player):
             print("{name}: {lives}"
-                .format(name = CmdSigaller.getNameString([p]),
-                    lives = p.getLives()))
-        
-        print("\n-- SESSION {num} STANDINGS --".format(num = i))
-        playSet = set(players)
-        
+                .format(name = CmdSigaller.get_name_string([player]),
+                    lives = player.get_lives()))
+
+        print(standMsg.STANDINGS.format(num = i))
+        player_set = set(players)
+
         first = True # need a more elegant way to do this
-        for a in alliances:
+        for alliance in alliances:
             if not first:
                 print()
             first = False
-            print(CmdSigaller.colour(a.getName(), bc.ALLIANCE))
-            a.getMembers().sort(key=lambda p: p.getLives(), reverse=True)
-            for p in a.getMembers():
-                printPlayer(p)
-            playSet -= set(a.getMembers())
+            print(CmdSigaller.colour(alliance.get_name(), bc.ALLIANCE))
+            alliance.get_members().sort(key=lambda p: p.get_lives(), reverse=True)
+            for member in alliance.get_members():
+                print_player(member)
+            player_set -= set(alliance.get_members())
 
-        if len(playSet) > 0:
-            if len(playSet) < len(players):
-                print(CmdSigaller.colour("\nNo Alliance", bc.ALLIANCE)) 
-            playSet = list(playSet)
-            playSet.sort(key=lambda p: p.getLives(), reverse=True)
-            for p in playSet:
-                printPlayer(p)
+        if len(player_set) > 0:
+            if len(player_set) < len(players):
+                print(CmdSigaller.colour("\nNo Alliance", bc.ALLIANCE))
+            player_set = list(player_set)
+            player_set.sort(key=lambda p: p.get_lives(), reverse=True)
+            for player in player_set:
+                print_player(player)
 
-        # players.sort(key=lambda p: p.getLives(), reverse=True)
-        # for p in players:
-        #     print("{name} ({ally}): {lives}"
-        #           .format(name = CmdSigaller.getNameString([p]),
-        #                   ally = p.getAllianceName(),
-        #                   lives = p.getLives()))
+    def stats_end(self, players, eliminated):
+        """Prints end of game stats."""
+        print(standMsg.FINAL_STANDINGS)
+        all_players = players + eliminated
+        for i, player in enumerate(all_players, start=1):
+            plural = '' if player.get_kills() == 1 else 's'
+            print(standMsg.RANK
+                  .format(num = i,
+                          p = player.get_name(),
+                          kills = CmdSigaller.colour(f'({player.get_kills()} kill{plural})', bc.GREY)))
+        input(CmdSigaller.colour(standMsg.EXIT, bc.GREY))
 
-    def statsEnd(self, players, eliminated):
-        print("\n-- FINAL STANDINGS --")
-        all = players + eliminated
-        for i, p in enumerate(all, start=1):
-            s = '' if p.getKills() == 1 else 's'
-            print(f"#{i}: {p.getName()} {CmdSigaller.colour(f'({p.getKills()} kill{s})', bc.GREY)}")
-        input(CmdSigaller.colour("\n[ Press Enter to Exit ]", bc.GREY))
+    def stats_win(self, player):
+        """Prints winner banner."""
+        print(standMsg.WINNER
+              .format(p = CmdSigaller.colour(player.get_name(), bc.PURPLE)))
 
-    def statsWin(self, player):
-        print("\n[ [ Game End: Winner is {player} ] ]"
-              .format(player = CmdSigaller.colour(player.getName(), bc.PURPLE)))
-        
     def cont(self):
-        input(CmdSigaller.colour("\n[ Press ENTER to Continue ]", bc.GREY))
+        """Prints continuing message."""
+        input(CmdSigaller.colour(standMsg.CONTINUE, bc.GREY))
 
     @staticmethod
-    def getNameString(players):
+    def get_name_string(players):
+        """Gets a list of names from a list of players."""
         if len(players) == 0:
             return ''
         if len(players) == 1:
-            return CmdSigaller.getNameColour(players[0])
+            return CmdSigaller.get_name_colour(players[0])
         def combine(x, y):
             return x + ", " + y
-        pStr = map(lambda x: CmdSigaller.getNameColour(x), players[:-1])
-        return reduce(combine, pStr) + " and " + CmdSigaller.getNameColour(players[-1])
-    
+        player_string = map(lambda x: CmdSigaller.get_name_colour(x), players[:-1])
+        return reduce(combine, player_string) + " and " + CmdSigaller.get_name_colour(players[-1])
+
     @staticmethod
-    def getNameColour(player):
-        playStr = player.getName() + bc.ENDC
-        lives = player.getLives()
+    def get_name_colour(player):
+        """Gets the colour associated with a player's life count."""
+        player_string = player.get_name() + bc.ENDC
+        lives = player.get_lives()
         col = ''
         match lives:
             case 0:
@@ -245,12 +274,13 @@ class CmdSigaller():
                 col = bc.YELLOW
             case 3:
                 col = bc.GREEN
-            case _: 
+            case _:
                 col = bc.DARKGREEN
-        return col + playStr
-    
+        return col + player_string
+
     @staticmethod
     def colour(string, colour):
+        """Adds colour codes to a string."""
         return colour + string + bc.ENDC
 
 sig = CmdSigaller()

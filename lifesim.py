@@ -1,3 +1,7 @@
+"""
+Main simulator functionality.
+"""
+
 from random import randint, choice, choices
 from math import ceil, floor
 
@@ -10,9 +14,10 @@ HOURS = 4
 REL_CAP = 10
 
 class Game():
+    """The actual simulator."""
     def __init__(self):
         self.rule = None
-        self.allPlayers = []
+        self.all = []
         self.players = []
         self.eliminated = []
         self.alliances = []
@@ -21,278 +26,309 @@ class Game():
         self.session = 0
 
     def init(self):
+        """Setup to start the game."""
         self.map = Map(ceil(len(self.players)/2))
         self.relationships = [None] * len(self.players)
         for i in range(len(self.players)):
             self.relationships[i] = [0] * len(self.players)
 
-    def addPlayer(self, name): # Add support for stats later
-        player = Player(len(self.players), name, self.rule.setLives())
+    def add_player(self, name): # Add support for stats later
+        """Adds a new player to the roster."""
+        player = Player(len(self.players), name, self.rule.set_lives())
         self.players.append(player)
-        self.allPlayers.append(player)
+        self.all.append(player)
 
-    def setRules(self,rule):
-        self.rule = rule
+    def set_rules(self, ruleset):
+        """Sets the ruleset the game users."""
+        self.rule = ruleset
 
-    def getRelationship(self, p1, p2):
+    def get_relationship(self, play_1, play_2):
+        """Gets the relationship between two players."""
         # Add boogey penalty later
-        rel = self.relationships[p1.getIndex()][p2.getIndex()] + Alliance.getAllianceBonus(p1,p2)
+        rel = (self.relationships[play_1.get_index()][play_2.get_index()]
+                + Alliance.get_alliance_bonus(play_1,play_2))
+
         # Actual relation value can go over -5/5, but returned value is hard capped
         return min(REL_CAP, rel) if rel > 0 else max(-REL_CAP, rel)
-    
+
     # Randomly decay relationships - move values closer to 0
-    def decayRelationships(self):
-        for i, p in enumerate(self.relationships):
-            for j in range(0, len(p)):
+    def decay_relationships(self):
+        """Randomly decays relationships over the course of the game."""
+        for i, player in enumerate(self.relationships):
+            for j in range(0, len(player)):
                 val = self.relationships[i][j]
-                self.relationships[i][j] -= int(val/abs(val)) if val != 0 and randint(0,1) == 0 else 0
-    
-    def playerElimination(self, p):
-        sig.playerEliminated(p)
-        self.players.remove(p)
-        self.eliminated.insert(0, p)
-        a = p.getAlliance()
-        if (p.leaveAlliance(self.relationships)): # Alliance has disbanded
-            self.alliances.remove(a)
+                self.relationships[i][j] -= (int(val/abs(val))
+                                             if val != 0 and randint(0,1) == 0 else 0)
 
-    def generateConflictSides(self, a, d, players):
-        players.remove(a)
-        players.remove(d)
-        
-        if len(players) == 0: # Only 2 players in combat, no need to assign sides
-            self.relationships[a.getIndex()][d.getIndex()] -= randint(3,4)
-            sig.playerFight([a], [d])
-            return [a], [d]
+    def player_elimination(self, player):
+        """Eliminates a player from the game."""
+        sig.player_eliminated(player)
+        self.players.remove(player)
+        self.eliminated.insert(0, player)
+        alliance = player.get_alliance()
+        if player.leave_alliance(self.relationships): # Alliance has disbanded
+            self.alliances.remove(alliance)
 
-        attackers = [a]
-        defenders = [d]
+    def generate_conflict_sides(self, attacker, defender, participants):
+        """Sorts players into either side of a conflict using relationship values.
+        Players can be spectators if not sorted."""
 
-        for p in players:
-            arel = self.getRelationship(p, a)
-            drel = self.getRelationship(p, d)
-            if drel == REL_CAP or randint(0,REL_CAP-drel) == 0:
-                defenders.append(p)
-            elif p.isHostile() and (arel == REL_CAP or randint(0, REL_CAP-arel) == 0):
-                attackers.append(p)
+        participants.remove(attacker)
+        participants.remove(defender)
 
-        for d in defenders:
-            for a in attackers:
-                self.relationships[d.getIndex()][a.getIndex()] -= randint(3,4)
+        if len(participants) == 0: # Only 2 players in combat, no need to assign sides
+            self.relationships[attacker.get_index()][defender.get_index()] -= randint(3,4)
+            sig.player_fight([attacker], [defender])
+            return [attacker], [defender]
 
-        sig.playerFight(attackers, defenders)
+        attackers = [attacker]
+        defenders = [defender]
+
+        for player in participants:
+            a_rel = self.get_relationship(player, attacker)
+            d_rel = self.get_relationship(player, defender)
+            if d_rel == REL_CAP or randint(0,REL_CAP-d_rel) == 0:
+                defenders.append(player)
+            elif player.is_hostile() and (a_rel == REL_CAP or randint(0, REL_CAP-a_rel) == 0):
+                attackers.append(player)
+
+        for defender in defenders:
+            for attacker in attackers:
+                self.relationships[defender.get_index()][attacker.get_index()] -= randint(3,4)
+
+        sig.player_fight(attackers, defenders)
         return attackers, defenders
 
-    def battle(self, offence, defence):
-        osum = []
-        dsum = []
-        for a in offence:
-            osum.append(randint(0,10) + (3 if a.getLives() == 1 else 0))
-        for d in defence:
-            dsum.append(randint(0,10) + (3 if a.getLives() == 1 else 0))
-        winning, losing = (defence, offence) if sum(osum) < sum(dsum) else (offence, defence)
+    def battle(self, attack, defence):
+        """Battles two sides against each other."""
 
-        for p in losing:
-            if randint(0, len(offence)) == 0:
-                sig.playerEscape(p, winning)
+        a_sum = 0
+        d_sum = 0
+
+        for attacker in attack:
+            a_sum += randint(0,10) + (3 if attacker.get_lives() == 1 else 0)
+        for defender in defence:
+            d_sum += randint(0,10) + (3 if defender.get_lives() == 1 else 0)
+        winning, losing = (defence, attack) if a_sum < d_sum else (attack, defence)
+
+        for player in losing:
+            if randint(0, len(winning)) == 0:
+                sig.player_escape(player, winning)
             else:
-                a = choice(winning)
-                sig.playerKilled(p, a)                
-                self.relationships[p.getIndex()][a.getIndex()] -= (randint(1,3) 
-                    + (floor(REL_CAP/3) if p.getAlliance() != None and p.getAlliance() == d.getAlliance() 
+                attacker = choice(winning)
+                sig.player_killed(player, attacker)
+                self.relationships[player.get_index()][attacker.get_index()] -= (randint(1,3)
+                    + (floor(REL_CAP/3) if player.get_alliance() is not None
+                       and player.get_alliance() == attacker.get_alliance()
                     else 0))
-                if (self.rule.playerDeath(p)):
-                    self.playerElimination(p)
-                a.incKills()
+                if self.rule.player_death(player):
+                    self.player_elimination(player)
+                attacker.inc_kills()
 
-    def generateConflict(self, players, hostile):
-        # For each hostile, RNG 0-5 + relation - lives - modifier affected by surviving players
+    def generate_conflict(self, participants, hostiles):
+        """Checks if conflict occurs between any players."""
+
+        # For each hostile, force conflict if relationship is at min value or few surviving players
+        # Otherwise, generate number based on relationship - lives - modifier affected by survivors
         # If any land on 0 or less, conflict - otherwise return False
-        for h in hostile:
-            for p in players:
-                val = (0 if self.getRelationship(h, p) == -REL_CAP
+        for hostile in hostiles:
+            for target in participants:
+                val = (0 if self.get_relationship(hostile, target) == -REL_CAP
                        or len(self.players) < 4 # Force conflict if very few players remain
-                       else randint(0, REL_CAP+self.getRelationship(h, p)) 
-                       - p.getLives() 
+                       else randint(0, REL_CAP+self.get_relationship(hostile, target))
+                       - target.get_lives()
                        - floor((2*REL_CAP)/len(self.players)))
-                if val <= 0 and h.getIndex() != p.getIndex():
-                    s1, s2 = self.generateConflictSides(h, p, players)
-                    self.battle(s1, s2)
+                if val <= 0 and hostile.get_index() != target.get_index():
+                    side1, side2 = self.generate_conflict_sides(hostile, target, participants)
+                    self.battle(side1, side2)
                     return True
         return False
-    
-    def generateSinglePlayerEvent(self, player, s):
-        m = max(self.relationships[player.getIndex()])
-        if player.getAlliance() == None and m > -REL_CAP and (m > REL_CAP-1 or randint(0,REL_CAP-m)):
-            index = self.relationships[player.getIndex()].index(m)
-            alliance = self.allPlayers[index].getAlliance()
-            if (alliance and len(alliance.getMembers()) < ceil(len(self.players)/3)):
-                sig.allianceJoin(player, alliance.getName())
-                player.setAlliance(alliance)
+
+    def generate_single_player_event(self, player):
+        """Creates an event for a single player."""
+        max_player = max(self.relationships[player.get_index()])
+        if (player.get_alliance() is None
+                and max_player > -REL_CAP
+                and (max_player > REL_CAP-1 or randint(0,REL_CAP-max_player))):
+            index = self.relationships[player.get_index()].index(max_player)
+            alliance = self.all[index].get_alliance()
+            if (alliance and len(alliance.get_members()) < ceil(len(self.players)/3)):
+                sig.alliance_join(player, alliance.get_name())
+                player.set_alliance(alliance)
                 return
 
         match randint(1,12):
-            case f if player.getLives() <= f <= 1:
-                sig.playerDeath([player])
-                if (self.rule.playerDeath(player)):
-                    self.playerElimination(player)
+            case filler if player.get_lives() <= filler <= 1:
+                sig.player_death([player])
+                if self.rule.player_death(player):
+                    self.player_elimination(player)
             case _:
-                if (player.isHostile() and randint(0,1) == 0):
-                    sig.playerTrap(self.map.setTrap(player), player, [], False)
+                if (player.is_hostile() and randint(0,1) == 0):
+                    sig.player_trap(self.map.set_trap(player), player, [], False)
                     return
                 if (len(self.eliminated) > 0 and randint(0,REL_CAP) == 0):
-                    sig.eventDeadLoot([player], choice(self.eliminated))
+                    sig.event_deadloot([player], choice(self.eliminated))
                     return
                 sig.filler([player], [], [], self.session)
 
-    def generateEvent(self, players, s):
-        def relationUpdate(s1, s2, sign, amount):
-            for p1 in s2:
-                for p2 in s1:
-                    i1, i2 = p1.getIndex(), p2.getIndex()
-                    self.relationships[i1][i2] += sign*randint(amount[0],amount[1])
-                    if sign > 0:
-                        self.relationships[i2][i1] += randint(amount[0],amount[1])
+    def generate_event(self, participants, sector):
+        """Generates an event for the playeres in a sector."""
 
-        def allianceEvent(players, type):
-            a = choice(self.alliances)
-            sig.eventAlly(players, a.getName(), type)
-            return a.getMembers()
-        
-        if s.getTrap() and len(self.players) > len(players) <= 5:
-            tripped = True if s.getTrapSetter() in players and randint(0,10) == 0 else False
-            if s.getTrapSetter() not in players or tripped:
-                kill, str, a = s.triggerTrap(len(players), tripped)
-                sig.playerTrap(str, a, players, kill)
-                if (kill):
-                    found = randint(0,1) # Whether the group finds out who set the trap
-                    for p in players:
-                        self.relationships[p.getIndex()][a.getIndex()] -= (randint(2,3)*found 
-                            + (floor(REL_CAP/3) if p.getAlliance() != None and p.getAlliance() == a.getAlliance() 
-                            else 0))
-                        if (self.rule.playerDeath(p)):
-                            self.playerElimination(p)
-                        a.incKills()
+        # Updates relationships between two groups
+        def relation_update(side1, side2, sign, amount):
+            for play1 in side2:
+                for play2 in side1:
+                    index1, index2 = play1.get_index(), play2.get_index()
+                    self.relationships[index1][index2] += sign*randint(amount[0],amount[1])
+                    if sign > 0:
+                        self.relationships[index2][index1] += randint(amount[0],amount[1])
+
+        # Handler for alliance related events
+        def alliance_event(participants, type_of_inter):
+            alliance = choice(self.alliances)
+            sig.event_alliance(participants, alliance.get_name(), type_of_inter)
+            return alliance.get_members()
+
+        # If trap in sector, trigger it
+        if sector.get_trap() and len(self.players) > len(participants) <= 5:
+            tripped = bool(sector.get_trap_setter() in participants and randint(0,10) == 0)
+            if sector.get_trap_setter() not in participants or tripped:
+                kill, text, setter = sector.trigger_trap(len(participants), tripped)
+                sig.player_trap(text, setter, participants, kill)
+                if kill:
+                    found = choice([True, False])
+                    for player in participants:
+                        if found:
+                            self.relationships[player.get_index()][setter.get_index()] -= (3
+                                + (floor(REL_CAP/3) if player.get_alliance() is not None
+                                   and player.get_alliance() == setter.get_alliance()
+                                else 0))
+                        if self.rule.player_death(player):
+                            self.player_elimination(player)
+                        setter.inc_kills()
                 return
 
         # Alliance event
-        if len(players) < 4 and len(self.alliances) > 0 and randint(0, 30) == 0:
+        if len(participants) < 4 and len(self.alliances) > 0 and randint(0, 30) == 0:
             match randint(1,6):
-                case p if p in [1,2]:
-                    allianceEvent(players, 'ip')
-                case n if n in [3,4]:
-                    allianceEvent(players, 'in')
+                case pos if pos in [1,2]:
+                    alliance_event(participants, 'ip')
+                case neg if neg in [3,4]:
+                    alliance_event(participants, 'in')
                 case 5:
-                    allianceEvent(players, 'mp')
+                    alliance_event(participants, 'mp')
                 case 6:
-                    allianceEvent(players, 'mn')
+                    alliance_event(participants, 'mn')
             return
 
-        if len(players) == 1:
-            self.generateSinglePlayerEvent(players[0], s)
+        # If only player in sector
+        if len(participants) == 1:
+            self.generate_single_player_event(participants[0])
             return
 
+        # Create a new alliance.
         # Ensures an alliance between ALL surviving players cannot be made.
-        if (len(self.players) > len(players) and randint(0,HOURS-1) == 0
-                and all(p.getAlliance() == None for p in players)):
-            name = sig.allianceCreate(players)
+        if (len(self.players) > len(participants) and randint(0,HOURS-1) == 0
+                and all(p.get_alliance() is None for p in participants)):
+            name = sig.alliance_create(participants)
 
             ally = Alliance(name)
-            for p in players:
-                p.setAlliance(ally)
+            for player in participants:
+                player.set_alliance(ally)
             self.alliances.append(ally)
             return
-        
+
         # Push event generation to rulesets potentially in future?
         # Lots of repeated code even with template structure, tweaking will be difficult
-        s1, s2 = self.generateSides(players)
+        side1, side2 = self.generate_sides(participants)
         match randint(1,15):
-            case f if 1 <= f <= 5:
+            case filler if 1 <= filler <= 5:
                 if (len(self.eliminated) > 0 and randint(0,REL_CAP) == 0):
-                    sig.eventDeadLoot(players, choice(self.eliminated))
+                    sig.event_deadloot(participants, choice(self.eliminated))
                     return
-                sig.filler(players, s1, s2, self.session)
-            case p if p in [6,7]:
-                sig.event(s1, s2, 'ip')
-                relationUpdate(s1, s2, 1, [1,2])
-            case n if n in [8,9]:
-                sig.event(s1, s2, 'in')
-                relationUpdate(s1, s2, -1, [1,2])
+                sig.filler(participants, side1, side2, self.session)
+            case pos if pos in [6,7]:
+                sig.event(side1, side2, 'ip')
+                relation_update(side1, side2, 1, [1,2])
+            case neg if neg in [8,9]:
+                sig.event(side1, side2, 'in')
+                relation_update(side1, side2, -1, [1,2])
             case 10:
-                sig.event(s1, s2, 'mp')
-                relationUpdate(s1, s2, 1, [2,4])
+                sig.event(side1, side2, 'mp')
+                relation_update(side1, side2, 1, [2,4])
             case 11:
-                sig.event(s1, s2, 'mn')
-                relationUpdate(s1, s2, -1, [2,4])
-            case d if 12 <= d <= 15:
-                sig.playerDeath(s1)
-                for p in s1:
-                    if (self.rule.playerDeath(p)):
-                        self.playerElimination(p)
-                # sig.filler(s2, s2, [], self.session)
+                sig.event(side1, side2, 'mn')
+                relation_update(side1, side2, -1, [2,4])
+            case death if 12 <= death <= 15:
+                sig.player_death(side1)
+                for player in side1:
+                    if self.rule.player_death(player):
+                        self.player_elimination(player)
 
-    def runDay(self):
+    def run_day(self):
+        """Run a single day/session of the game."""
         self.session += 1
-        self.map.updateSectors(ceil(len(self.players)/2))
-        sig.gameNextSesh(self.session)
-        for i in range(0, HOURS):
-            if (self.runHour(self.map.allocateSector(self.players))):
-                sig.statsWin(self.players[0])
+        self.map.update_sectors(ceil(len(self.players)/2))
+        sig.game_next_sesh(self.session)
+        for _ in range(0, HOURS):
+            if self.run_hour(self.map.allocate_sector(self.players)):
+                sig.stats_win(self.players[0])
                 sig.cont()
-                sig.statsEnd(self.players, self.eliminated)
+                sig.stats_end(self.players, self.eliminated)
                 return True
 
         # Relationship Decay
         if self.session % 3:
-            self.decayRelationships()    
-        
+            self.decay_relationships()
+
         sig.cont()
         sig.stats(self.players, self.alliances, self.session)
         sig.cont()
         return False
 
-    def runHour(self, sectors):
-        for s in sectors:
-            hostile = s.getHostile()
-            players = s.getPlayers()
-            if len(players) == 0: # No players in sector
+    def run_hour(self, sectors):
+        """Run a single hour of the game."""
+        for sector in sectors:
+            hostile = sector.get_hostile()
+            participants = sector.get_players()
+            if len(participants) == 0: # No players in sector
                 continue
-            if len(hostile) > 0:
-                if (self.generateConflict(players, hostile)):
-                    if len(self.players) < 2:
-                        return True
-                    continue
-            self.generateEvent(players, s)
+            if len(hostile) == 0 or not self.generate_conflict(participants, hostile):
+                # if self.generate_conflict(participants, hostile):
+                #     continue
+                self.generate_event(participants, sector)
 
-        # There should always be 1 player left, but the check is present
-        # incase something somehow goes wrong
-        if len(self.players) < 2:
-            return True
+            # There should always be 1 player left, but the check is present
+            # incase something somehow goes wrong
+            if len(self.players) < 2:
+                return True
 
         # Check alliance stability
-        for a in self.alliances:
-            if (a.disband(self.relationships)):
-                self.alliances.remove(a)
+        for alliance in self.alliances:
+            if alliance.disband(self.relationships):
+                self.alliances.remove(alliance)
 
         return False
-        
+
     @staticmethod
-    def generateSides(players):
-        playerSet = set(players)
-        s1 = set(choices(players, k=randint(1, len(players)-1)))
-        s2 = list(playerSet - s1)
-        s1 = list(s1)
-        return s1, s2
-    
+    def generate_sides(participants):
+        """Split a group of players into two sides."""
+        player_set = set(participants)
+        side1 = set(choices(participants, k=randint(1, len(participants)-1)))
+        side2 = list(player_set - side1)
+        side1 = list(side1)
+        return side1, side2
+
     # def start(self):
     #     print("\n-- STARTING LIVES --")
     #     for p in self.players:
-    #         print("{name}: {n} lives".format(name = p.getName(), n = p.getLives()))
+    #         print("{name}: {n} lives".format(name = p.get_name(), n = p.get_lives()))
 
 
 if __name__ == "__main__":
     game = Game()
     rule = ThirdLife(game)
-    game.setRules(rule)
+    game.set_rules(rule)
     sig.start()
     players = input("\nPlayers: ").split(", ") # Sanitise if frontend ever made
 
@@ -302,12 +338,12 @@ if __name__ == "__main__":
     #     if not inp:
     #         break
     #     players += inp.split(", ")
-    
+
     for p in players:
-        game.addPlayer(p)
+        game.add_player(p)
     game.init()
 
     # game.start()
 
-    while not game.runDay():
+    while not game.run_day():
         continue

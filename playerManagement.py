@@ -1,9 +1,12 @@
-import math
+"""
+Classes for players and player-related attributes.
+"""
 import random
 
 from signallers import sig
 
 class Player():
+    """Player object."""
     def __init__(self, index, name, lives):
         self.index = index
         self.name = name
@@ -12,44 +15,47 @@ class Player():
         self.hostile = False
         self.kills = 0
 
-    def setLives(self, lives):
+    def set_lives(self, lives):
         self.lives = lives
 
-    def getIndex(self):
+    def get_index(self):
         return self.index
 
-    def getName(self):
+    def get_name(self):
         return self.name
-    
-    def getLives(self):
-        return self.lives
-    
-    def setAlliance(self, alliance):
-        self.alliance = alliance
-        if (alliance):
-            alliance.addMember(self)
-    
-    def getAlliance(self):
-        return self.alliance
-    
-    def getAllianceName(self):
-        return self.alliance.getName() if self.alliance != None else "None"
 
-    def setHostile(self, hostile):
+    def get_lives(self):
+        return self.lives
+
+    def set_alliance(self, alliance):
+        self.alliance = alliance
+        if alliance:
+            alliance.add_member(self)
+
+    def get_alliance(self):
+        return self.alliance
+
+    def get_alliance_name(self):
+        """Get the name of the player's alliance."""
+        return self.alliance.getName() if self.alliance is not None else "None"
+
+    def set_hostile(self, hostile):
         self.hostile = hostile
 
-    def isHostile(self):
+    def is_hostile(self):
         return self.hostile
-    
-    def getKills(self):
+
+    def get_kills(self):
         return self.kills
-    
-    def incKills(self):
+
+    def inc_kills(self):
+        """Incrememnt the number of kills."""
         self.kills += 1
-    
-    def leaveAlliance(self, relations):
-        if (self.alliance != None):
-            self.alliance.removeMember(self)
+
+    def leave_alliance(self, relations):
+        """Makes the player leave their current alliance."""
+        if self.alliance is not None:
+            self.alliance.remove_member(self)
             if relations and self.alliance.disband(relations):
                 self.alliance = None
                 return True
@@ -58,37 +64,43 @@ class Player():
 
 
 class Alliance():
+    """Alliance object."""
     def __init__(self, name):
         self.name = name
         self.members = []
-        self.stength = random.randint(1,3)
+        self.strength = random.randint(1,3)
 
-    def getName(self):
+    def get_name(self):
         return self.name
 
-    def getMembers(self):
+    def get_members(self):
         return self.members
-    
-    def addMember(self, p):
+
+    def add_member(self, p):
         self.members.append(p)
 
-    def removeMember(self, p):
+    def remove_member(self, p):
         self.members.remove(p)
-    
-    def getStrength(self):
+
+    def get_strength(self):
         return self.strength
 
-    def checkStability(self, relations):
+    def check_stability(self, relations):
+        """
+        Check alliance stability.
+        Members will leave/be kicked if relationship is too low. If overall relationships
+        are low, alliance will fall apart.
+        """
         perceptions = [0] * len(self.members)
         individual = [0] * len(self.members)
         overall = 0
-        for i, p in enumerate(self.members):
-            for j, t in enumerate(self.members):
-                rel = relations[p.getIndex()][t.getIndex()]
+        for i, player in enumerate(self.members):
+            for j, target in enumerate(self.members):
+                rel = relations[player.get_index()][target.get_index()]
                 individual[i] += rel
                 perceptions[j] += rel
                 overall += rel
-        
+
         kicked = []
         leaving = []
 
@@ -101,12 +113,12 @@ class Alliance():
                 leaving.append(self.members[i])
 
         for k in kicked:
-            k.leaveAlliance([])
-            sig.allianceKick(k, self.name)
+            k.leave_alliance([])
+            sig.alliance_kick(k, self.name)
 
         for i in leaving:
-            i.leaveAlliance([])
-            sig.allianceLeave(i, self.name)
+            i.leave_alliance([])
+            sig.alliance_leave(i, self.name)
 
         if (overall < -2*len(self.members+kicked+leaving)
                 or len(kicked + leaving) >= len(self.members)):
@@ -115,14 +127,16 @@ class Alliance():
         return False
 
     def disband(self, relations):
-        if len(self.getMembers()) < 2 or self.checkStability(relations):
+        """Check if an alliance should be disbanded."""
+        if len(self.get_members()) < 2 or self.check_stability(relations):
             for p in self.members:
-                p.setAlliance(None)
-            sig.allianceDisband(self.name)
+                p.set_alliance(None)
+            sig.alliance_disband(self.name)
             return True
         return False
-    
+
     @staticmethod
-    def getAllianceBonus(p1, p2):
-        return (p1.getAlliance().getStrength() 
-                if p1.getAlliance() == p2.getAlliance else 0)
+    def get_alliance_bonus(p1, p2):
+        """Get relationship bonus from being in the same alliance."""
+        return (p1.get_alliance().get_strength()
+                if p1.get_alliance() == p2.get_alliance else 0)

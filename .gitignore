@@ -5,3 +5,4 @@ dist
 lifesim.spec
 heart.ico
 setup.py
+pylintrc
