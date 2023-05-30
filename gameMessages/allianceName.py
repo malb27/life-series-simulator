@@ -180,7 +180,12 @@ SECOND = [
     "Song",
     "Shards",
     "Constellation",
+    "Furnace",
     "Forge",
+    "Lectern",
+    "Stone",
+    "Tree",
+    "Ruins",
 
     "Neighbors",
     "Family",

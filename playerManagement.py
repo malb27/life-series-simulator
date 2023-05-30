@@ -1,9 +1,11 @@
 """
 Classes for players and player-related attributes.
 """
-import random
+from math import ceil
 
 from signallers import sig
+
+REL_CAP = 10
 
 class Player():
     """Player object."""
@@ -68,7 +70,7 @@ class Alliance():
     def __init__(self, name):
         self.name = name
         self.members = []
-        self.strength = random.randint(1,3)
+        self.strength = 1
 
     def get_name(self):
         return self.name
@@ -91,38 +93,51 @@ class Alliance():
         Members will leave/be kicked if relationship is too low. If overall relationships
         are low, alliance will fall apart.
         """
-        perceptions = [0] * len(self.members)
-        individual = [0] * len(self.members)
+        
         overall = 0
-        for i, player in enumerate(self.members):
-            for j, target in enumerate(self.members):
-                rel = relations[player.get_index()][target.get_index()]
-                individual[i] += rel
-                perceptions[j] += rel
-                overall += rel
 
-        kicked = []
-        leaving = []
+        while True:
+            perceptions = [0] * len(self.members)
+            individual = [0] * len(self.members)
+            overall = 0
 
-        for i, val in enumerate(perceptions):
-            if val <= -2*len(self.members):
-                kicked.append(self.members[i])
+            for i, player in enumerate(self.members):
+                for j, target in enumerate(self.members):
+                    rel = relations[player.get_index()][target.get_index()]
+                    individual[i] += rel
+                    perceptions[j] += rel
+                    overall += rel
 
-        for i, val in enumerate(individual):
-            if val < -2*len(self.members) and self.members[i] not in kicked:
-                leaving.append(self.members[i])
+            kicked = []
+            leaving = []
 
-        for k in kicked:
-            k.leave_alliance([])
-            sig.alliance_kick(k, self.name)
+            for i, val in enumerate(perceptions):
+                if val <= -1.5*len(self.members):
+                    kicked.append(self.members[i])
 
-        for i in leaving:
-            i.leave_alliance([])
-            sig.alliance_leave(i, self.name)
+            for i, val in enumerate(individual):
+                if val < -1.5*len(self.members) and self.members[i] not in kicked:
+                    leaving.append(self.members[i])
 
-        if (overall < -2*len(self.members+kicked+leaving)
-                or len(kicked + leaving) >= len(self.members)):
+            if len(kicked) == 0 and len(leaving) == 0:
+                break
+
+            for k in kicked:
+                k.leave_alliance([])
+                sig.alliance_kick(k, self.name)
+
+            for i in leaving:
+                i.leave_alliance([])
+                sig.alliance_leave(i, self.name)
+
+            if len(self.members) <= 1:
+                return True
+
+        if overall < -2*len(self.members):
             return True
+        
+        new_str = ceil(overall/REL_CAP)*2+1
+        self.strength = new_str if new_str > 0 else 0
 
         return False
 

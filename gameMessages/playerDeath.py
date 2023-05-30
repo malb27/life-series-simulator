@@ -40,6 +40,7 @@ ONE_PERSON = [
 ONE_GROUP = [
     "{g} were blown up by a Creeper.",
     "{g} were overwhelmed by mobs whilst caving.",
+    "{g} were overwhelmed by mobs at night.",
     "{g} shouldn't have dug straight down.",
     "{g}'s mansion raid was a disaster.",
     "{g}'s nether raid was a disaster.",

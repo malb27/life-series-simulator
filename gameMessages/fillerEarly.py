@@ -26,7 +26,9 @@ ONE_PERSON = [
     "{p} finds a frog. They keep it as a pet.",
     "{p} stashes supplies in a secret chest.",
     "{p} places torches around the map.",
-    "{p} spends far too long trying to get goat horns",
+    "{p} spends far too long trying to get goat horns.",
+    "{p} ruminates on their gameplan.",
+    "{p} think about their strategies to win.",
 ]
 
 ONE_GROUP = [

@@ -65,6 +65,9 @@ class CmdSigaller():
 
     def alliance_create(self, members):
         """Prints the alliance creation message."""
+        if len(allyName.FIRST) == 0 or len(allyName.SECOND) == 0:
+            return None
+
         first, second = choice(allyName.FIRST), choice(allyName.SECOND)
         allyName.FIRST.remove(first)
         allyName.SECOND.remove(second)
@@ -173,8 +176,11 @@ class CmdSigaller():
 
     def player_fight(self, side1, side2):
         """Prints player fight message."""
+        plural = 's' if len(side1) == 1 else ''
         print(standMsg.FIGHT
-              .format(players = CmdSigaller.get_name_string(side1 + side2)))
+              .format(g1 = CmdSigaller.get_name_string(side1),
+                      g2 = CmdSigaller.get_name_string(side2),
+                      s = plural))
 
     def player_killed(self, player, attacker):
         """Prints player killed message."""

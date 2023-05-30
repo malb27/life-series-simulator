@@ -1,13 +1,16 @@
 KILLS = [
     "{p1} was slain by {p2}",
-    "{p1} went off with a bang (by a firework shot by {p2})",
+    "{p1} was slain by {p2}",
     "{p1} was shot by {p2}",
+    "{p1} was shot by {p2}",
+    "{p1} went off with a bang (by a firework shot by {p2})",
     "{p1} was blown up by {p2}",
     "{p1} was doomed to fall by {p2}",
     "{p1} hit the ground too hard whilst trying to escape {p2}",
     "{p1} burnt to a crisp whilst fighting {p2}",
     "{p1} drowned whilst trying to escape {p2}",
     "{p1} tried to swim in lava to escape {p2}",
+    "{p1} was finished off by a mob whilst escaping {p2}",
 ]
 
 ESCAPES = [
@@ -24,4 +27,5 @@ ESCAPES = [
     "{p} retaliates so fiercely their opponent{s} back{s2} off.",
     "{p} convinces {a} to leave them alone.",
     "{p} completely jukes {a}.",
+    "{p} takes refuge in a nearby base.",
 ]

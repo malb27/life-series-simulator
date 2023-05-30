@@ -2,16 +2,15 @@
 Main simulator functionality.
 """
 
-from random import randint, choice, choices
+from random import randint, choice, choices, shuffle
 from math import ceil, floor
 
 from gameMap import Map
-from playerManagement import Player, Alliance
+from playerManagement import Player, Alliance, REL_CAP
 from rulesets import ThirdLife
 from signallers import sig
 
-HOURS = 4
-REL_CAP = 10
+HOURS = 3
 
 class Game():
     """The actual simulator."""
@@ -146,18 +145,22 @@ class Game():
 
     def generate_single_player_event(self, player):
         """Creates an event for a single player."""
-        max_player = max(self.relationships[player.get_index()])
-        if (player.get_alliance() is None
-                and max_player > -REL_CAP
-                and (max_player > REL_CAP-1 or randint(0,REL_CAP-max_player))):
-            index = self.relationships[player.get_index()].index(max_player)
-            alliance = self.all[index].get_alliance()
-            if (alliance and len(alliance.get_members()) < ceil(len(self.players)/3)):
-                sig.alliance_join(player, alliance.get_name())
-                player.set_alliance(alliance)
-                return
+        if (player.get_alliance() is None):
+                max_val = max(self.relationships[player.get_index()])
+                indices = [i for i, val in enumerate(self.relationships[player.get_index()])
+                                if val == max_val]
+                shuffle(indices)
+                if (max_val > -ceil(REL_CAP/2) 
+                        and (max_val >= ceil(REL_CAP/2) 
+                             or randint(0,ceil(REL_CAP/2)-max_val)) - floor(10/self.session) <= 0):
+                    for index in indices:
+                        alliance = self.all[index].get_alliance()
+                        if (alliance and len(alliance.get_members()) < ceil(len(self.players)/3)):
+                            sig.alliance_join(player, alliance.get_name())
+                            player.set_alliance(alliance)
+                            return
 
-        match randint(1,12):
+        match randint(1,20):
             case filler if player.get_lives() <= filler <= 1:
                 sig.player_death([player])
                 if self.rule.player_death(player):
@@ -190,7 +193,7 @@ class Game():
             return alliance.get_members()
 
         # If trap in sector, trigger it
-        if sector.get_trap() and len(self.players) > len(participants) <= 5:
+        if sector.get_trap() and len(self.players) > len(participants):
             tripped = bool(sector.get_trap_setter() in participants and randint(0,10) == 0)
             if sector.get_trap_setter() not in participants or tripped:
                 kill, text, setter = sector.trigger_trap(len(participants), tripped)
@@ -205,11 +208,12 @@ class Game():
                                 else 0))
                         if self.rule.player_death(player):
                             self.player_elimination(player)
-                        setter.inc_kills()
+                        if setter != player:
+                            setter.inc_kills()
                 return
 
         # Alliance event
-        if len(participants) < 4 and len(self.alliances) > 0 and randint(0, 30) == 0:
+        if len(participants) < 4 and len(self.alliances) > 0 and randint(0, HOURS*6) == 0:
             match randint(1,6):
                 case pos if pos in [1,2]:
                     alliance_event(participants, 'ip')
@@ -231,12 +235,12 @@ class Game():
         if (len(self.players) > len(participants) and randint(0,HOURS-1) == 0
                 and all(p.get_alliance() is None for p in participants)):
             name = sig.alliance_create(participants)
-
-            ally = Alliance(name)
-            for player in participants:
-                player.set_alliance(ally)
-            self.alliances.append(ally)
-            return
+            if name is not None:
+                ally = Alliance(name)
+                for player in participants:
+                    player.set_alliance(ally)
+                self.alliances.append(ally)
+                return
 
         # Push event generation to rulesets potentially in future?
         # Lots of repeated code even with template structure, tweaking will be difficult
@@ -294,8 +298,6 @@ class Game():
             if len(participants) == 0: # No players in sector
                 continue
             if len(hostile) == 0 or not self.generate_conflict(participants, hostile):
-                # if self.generate_conflict(participants, hostile):
-                #     continue
                 self.generate_event(participants, sector)
 
             # There should always be 1 player left, but the check is present
@@ -331,13 +333,6 @@ if __name__ == "__main__":
     game.set_rules(rule)
     sig.start()
     players = input("\nPlayers: ").split(", ") # Sanitise if frontend ever made
-
-    # players = []
-    # while (True):
-    #     inp = input()
-    #     if not inp:
-    #         break
-    #     players += inp.split(", ")
 
     for p in players:
         game.add_player(p)

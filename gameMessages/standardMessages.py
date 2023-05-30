@@ -14,7 +14,8 @@ SESSION_HEADER = "\n. : Session {num} : ."
 
 ELIMINATION = "[X] {p} has been eliminated!"
 
-FIGHT = "A fight breaks out between {players}!"
+# FIGHT = "A fight breaks out between {players}!"
+FIGHT = "A fight breaks out as {g1} attack{s} {g2}!"
 
 RED = "[!] {p} is now red!"
 
