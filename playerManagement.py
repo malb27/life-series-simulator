@@ -121,9 +121,7 @@ class Alliance():
             for i, player in enumerate(self.members):
                 for j, target in enumerate(self.members):
                     rel = relations[player.get_index()][target.get_index()]
-                    #individual[i] += rel
                     perceptions[j] += rel
-                    #overall += rel
 
             kicked = []
             leaving = []
@@ -140,7 +138,6 @@ class Alliance():
                 for j, target in enumerate(self.members):
                     rel = relations[player.get_index()][target.get_index()]
                     individual[i] += rel
-                    #perceptions[j] += rel
                     overall += rel
 
             for i, val in enumerate(individual):

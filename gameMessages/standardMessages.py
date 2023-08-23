@@ -13,9 +13,11 @@ ALLIANCE_DISBAND = "[?] {alliance} has fallen apart..."
 ALLIANCE_LEAVE = "{p} has left {alliance}."
 ALLIANCE_KICK = "{p} was kicked from {alliance}."
 
-BOOGEY_PICK = "{p} is the boogeyman!"
+BOOGEY_PICK = "{p} is choosen as the boogeyman!"
 BOOGEY_CURE = "{p} has been cured!"
-BOOGEY_FAIL = "{p} failed to cure themselves!"
+BOOGEY_FAIL = "{p} has failed to cure themselves!"
+
+TRADE_LIFE = "[>] {p1} gives a life to {p2}!"
 
 DEADLOOT = "{p} loot{s} {d}'s base for leftover resources."
 

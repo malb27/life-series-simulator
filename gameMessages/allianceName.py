@@ -8,6 +8,7 @@ FIRST = [
     "The False",
     "The Fun",
     "The Other",
+    "The Travelling",
 
     "The",
     "The",
@@ -78,6 +79,14 @@ FIRST = [
     "Magma",
     "Dripstone",
 
+    "Cobbled",
+    "Deepslate",
+    "Tuff",
+    "Gravel",
+    "Andesite",
+    "Diorite",
+    "Granite",
+
     "Castle",
     "Cottage",
     "Boat",
@@ -126,6 +135,8 @@ SECOND = [
     "Contingent",
     "Division",
     "Fellowship",
+    "Wanderers",
+    "Nomads",
 
     "Lurkers",
     "Splunkers",
@@ -188,5 +199,4 @@ SECOND = [
     "Ruins",
 
     "Neighbors",
-    "Family",
 ]

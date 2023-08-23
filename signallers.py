@@ -90,6 +90,12 @@ class CmdSigaller():
             p = CmdSigaller.get_name_string([player])
         ))
 
+    def life_trade(self, player1, player2):
+        print(CmdSigaller.colour(standMsg.TRADE_LIFE.format(
+            p1 = CmdSigaller.get_name_string([player1]),
+            p2 = CmdSigaller.get_name_string([player2])
+        ), bc.GREEN))
+
     def alliance_create(self, members):
         """Prints the alliance creation message."""
         if len(allyName.FIRST) == 0 or len(allyName.SECOND) == 0:
@@ -192,10 +198,13 @@ class CmdSigaller():
         print(CmdSigaller.colour(standMsg.ELIMINATION, bc.DEATH)
               .format(p = player.get_name()))
 
-    def player_escape(self, player, attackers):
+    def player_escape(self, player, attackers, attacker_win):
         """Prints player escaping from combat message."""
+        msg = playerKill.ATTACKER_ESCAPES
+        if attacker_win:
+            msg = playerKill.DEFENDER_ESCAPES
         plural = 's' if len(attackers) > 1 else ''
-        print(choice(playerKill.ESCAPES)
+        print(choice(msg)
               .format(p = CmdSigaller.get_name_string([player]),
                       s = plural,
                       s2 = 's'.replace(plural,''),

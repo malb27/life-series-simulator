@@ -18,13 +18,6 @@ class ThirdLife():
 
     def player_death(self, p):
         """Handle player death."""
-        # p.set_lives(p.get_lives() - 1)
-        # if p.get_lives() == 0:
-        #     return True
-        # if p.get_lives() == 1:
-        #     sig.player_red(p)
-        #     p.set_hostile(True)
-        # return False
         return self.player_reduce_lives(p, 1)
     
     def player_reduce_lives(self, p, n):
@@ -43,11 +36,9 @@ class ThirdLife():
     def assign_boogey(self, players):
         return
 
-    def giveLife(p1, p2):
-        return
+    def give_life(self, p1, p2):
+        return False
 
-    # def endHour():
-    #     return
 
 class LastLife():
     """
@@ -62,21 +53,15 @@ class LastLife():
 
     def player_death(self, p):
         """Handle player death."""
-        # p.set_lives(p.get_lives() - 1)
-        # if p.get_lives() == 0:
-        #     return True
-        # if p.get_lives() == 1:
-        #     sig.player_red(p)
-        #     p.set_hostile(True)
-        # return False
         return self.player_reduce_lives(p, 1)
     
     def player_reduce_lives(self, p, n):
+        if n == 0:
+            return
         p.set_lives(p.get_lives() - n)
         if p.get_lives() == 0:
             return True
         if p.get_lives() == 1:
-            p.cure_boogey()
             sig.player_red(p)
             p.set_hostile(True)
         return False
@@ -97,6 +82,10 @@ class LastLife():
                 sig.boogey_pick(boogey)
                 chance //= 2
 
-    def giveLife(p1, p2):
+    def give_life(self, p1, p2):
+        sig.life_trade(p1, p2)
         p1.set_lives(p1.get_lives() - 1)
         p2.set_lives(p2.get_lives() + 1)
+        if not p2.is_boogey():
+            p2.set_hostile(False)
+        return True

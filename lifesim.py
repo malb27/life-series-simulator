@@ -111,12 +111,12 @@ class Game():
             a_sum += randint(0,10) + (3 if attacker.get_lives() == 1 else 0) + attacker.boogey_bonus() * floor(len(self.players)/2)
         for defender in defence:
             d_sum += randint(0,10) + (3 if defender.get_lives() == 1 else 0) + defender.boogey_bonus() * floor(len(self.players)/2)
-        winning, losing = (defence, attack) if a_sum < d_sum else (attack, defence)
+        winning, losing, attack_win = (defence, attack, False) if a_sum < d_sum else (attack, defence, True)
 
         cured = []
         for player in losing:
             if randint(0, len(winning)+1) == 0 or len(cured) == len(winning):
-                sig.player_escape(player, winning)
+                sig.player_escape(player, winning, attack_win)
             else:
                 attacker = choice(winning)
                 sig.player_killed(player, attacker)
@@ -252,6 +252,15 @@ class Game():
                     player.set_alliance(ally)
                 self.alliances.append(ally)
                 return
+            
+        # Life giving
+        if (len(participants) == 2 
+            and participants[0].get_lives() > 2
+            and participants[0].get_lives() > participants[1].get_lives() + 1
+            and randint(0, REL_CAP+1-self.relationships[participants[0].get_index()][participants[1].get_index()]) < participants[0].get_lives()
+            and self.rule.give_life(participants[0], participants[1])):
+            relation_update([participants[0]], [participants[1]], 1, [3,5])
+            return
 
         # Push event generation to rulesets potentially in future?
         # Lots of repeated code even with template structure, tweaking will be difficult
@@ -343,9 +352,6 @@ class Game():
         return side1, side2
 
     def start(self):
-        # print("\n-- STARTING LIVES --")
-        # for p in self.players:
-        #     print("{name}: {n} lives".format(name = p.get_name(), n = p.get_lives()))
         sig.lives(self.players)
         sig.cont()
 
