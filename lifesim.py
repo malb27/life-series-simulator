@@ -11,7 +11,7 @@ from playerManagement import Player, Alliance, REL_CAP
 from rulesets import ThirdLife, LastLife
 from signallers import sig
 
-HOURS = 3
+HOURS = 4
 
 windll.kernel32.SetConsoleTitleW("Life Series Simulator")
 
@@ -108,13 +108,14 @@ class Game():
         d_sum = 0
 
         for attacker in attack:
-            a_sum += randint(0,10) + (3 if attacker.get_lives() == 1 else 0)
+            a_sum += randint(0,10) + (3 if attacker.get_lives() == 1 else 0) + attacker.boogey_bonus() * floor(len(self.players)/2)
         for defender in defence:
-            d_sum += randint(0,10) + (3 if defender.get_lives() == 1 else 0)
+            d_sum += randint(0,10) + (3 if defender.get_lives() == 1 else 0) + defender.boogey_bonus() * floor(len(self.players)/2)
         winning, losing = (defence, attack) if a_sum < d_sum else (attack, defence)
 
+        cured = []
         for player in losing:
-            if randint(0, len(winning)) == 0:
+            if randint(0, len(winning)+1) == 0 or len(cured) == len(winning):
                 sig.player_escape(player, winning)
             else:
                 attacker = choice(winning)
@@ -126,7 +127,11 @@ class Game():
                 if self.rule.player_death(player):
                     self.player_elimination(player)
                 attacker.inc_kills()
-
+                if attacker.is_boogey():
+                    attacker.cure_boogey()
+                    sig.boogey_cure(attacker)
+                    cured.append(attacker)
+                    
     def generate_conflict(self, participants, hostiles):
         """Checks if conflict occurs between any players."""
 
@@ -139,7 +144,7 @@ class Game():
                        or len(self.players) < 4 # Force conflict if very few players remain
                        else randint(0, REL_CAP+self.get_relationship(hostile, target))
                        - target.get_lives()
-                       - floor((2*REL_CAP)/len(self.players)))
+                       - floor((2*REL_CAP)/len(self.players)) * (3 if hostile.is_boogey() else 0))
                 if val <= 0 and hostile.get_index() != target.get_index():
                     side1, side2 = self.generate_conflict_sides(hostile, target, participants)
                     self.battle(side1, side2)
@@ -213,6 +218,9 @@ class Game():
                             self.player_elimination(player)
                         if setter != player:
                             setter.inc_kills()
+                            if setter.is_boogey():
+                                setter.cure_boogey()
+                                sig.boogey_cure(setter)
                 return
 
         # Alliance event
@@ -277,6 +285,7 @@ class Game():
         self.session += 1
         self.map.update_sectors(ceil(len(self.players)/2))
         sig.game_next_sesh(self.session)
+        self.rule.assign_boogey(self.players)
         for _ in range(0, HOURS):
             if self.run_hour(self.map.allocate_sector(self.players)):
                 winner = self.players[0] if len(self.players) > 0 else "...no one?! This is a bug, please screenshot your game and report it!"
@@ -290,6 +299,13 @@ class Game():
         if self.session % 3:
             self.decay_relationships()
 
+        # Boogey fails
+        for player in self.players:
+            if player.is_boogey():
+                sig.boogey_fail(player)
+                player.cure_boogey()
+                self.rule.player_reduce_lives(player, player.get_lives()-1)
+                
         sig.cont()
         sig.stats(self.players, self.alliances, self.session)
         sig.cont()

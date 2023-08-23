@@ -75,6 +75,21 @@ class CmdSigaller():
                 n = player.get_lives(),
             ))
 
+    def boogey_pick(self, player):
+        print(standMsg.BOOGEY_PICK.format(
+            p = CmdSigaller.get_name_string([player])
+        ))
+
+    def boogey_cure(self, player):
+        print(standMsg.BOOGEY_CURE.format(
+            p = CmdSigaller.get_name_string([player])
+        ))
+
+    def boogey_fail(self, player):
+        print(standMsg.BOOGEY_FAIL.format(
+            p = CmdSigaller.get_name_string([player])
+        ))
+
     def alliance_create(self, members):
         """Prints the alliance creation message."""
         if len(allyName.FIRST) == 0 or len(allyName.SECOND) == 0:
@@ -281,19 +296,22 @@ class CmdSigaller():
     def get_name_colour(player):
         """Gets the colour associated with a player's life count."""
         player_string = player.get_name() + bc.ENDC
-        lives = player.get_lives()
         col = ''
-        match lives:
-            case 0:
-                col = bc.GREY
-            case 1:
-                col = bc.RED
-            case 2:
-                col = bc.YELLOW
-            case 3:
-                col = bc.GREEN
-            case _:
-                col = bc.DARKGREEN
+        if player.is_boogey():
+            col = bc.PURPLE
+        else:
+            lives = player.get_lives()
+            match lives:
+                case 0:
+                    col = bc.GREY
+                case 1:
+                    col = bc.RED
+                case 2:
+                    col = bc.YELLOW
+                case 3:
+                    col = bc.GREEN
+                case _:
+                    col = bc.DARKGREEN
         return col + player_string
 
     @staticmethod

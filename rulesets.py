@@ -3,7 +3,7 @@ Rulesets for different life series.
 """
 
 from signallers import sig
-from random import randint
+from random import randint, choice
 
 class ThirdLife():
     """
@@ -18,7 +18,17 @@ class ThirdLife():
 
     def player_death(self, p):
         """Handle player death."""
-        p.set_lives(p.get_lives() - 1)
+        # p.set_lives(p.get_lives() - 1)
+        # if p.get_lives() == 0:
+        #     return True
+        # if p.get_lives() == 1:
+        #     sig.player_red(p)
+        #     p.set_hostile(True)
+        # return False
+        return self.player_reduce_lives(p, 1)
+    
+    def player_reduce_lives(self, p, n):
+        p.set_lives(p.get_lives() - n)
         if p.get_lives() == 0:
             return True
         if p.get_lives() == 1:
@@ -30,11 +40,11 @@ class ThirdLife():
         """Handle player kills."""
         return self.player_death(p1)
 
-    # def assignBoogey():
-    #     return
+    def assign_boogey(self, players):
+        return
 
-    # def giveLife(p1, p2):
-    #     return
+    def giveLife(p1, p2):
+        return
 
     # def endHour():
     #     return
@@ -52,10 +62,21 @@ class LastLife():
 
     def player_death(self, p):
         """Handle player death."""
-        p.set_lives(p.get_lives() - 1)
+        # p.set_lives(p.get_lives() - 1)
+        # if p.get_lives() == 0:
+        #     return True
+        # if p.get_lives() == 1:
+        #     sig.player_red(p)
+        #     p.set_hostile(True)
+        # return False
+        return self.player_reduce_lives(p, 1)
+    
+    def player_reduce_lives(self, p, n):
+        p.set_lives(p.get_lives() - n)
         if p.get_lives() == 0:
             return True
         if p.get_lives() == 1:
+            p.cure_boogey()
             sig.player_red(p)
             p.set_hostile(True)
         return False
@@ -63,3 +84,19 @@ class LastLife():
     def player_kill(self, p1):
         """Handle player kills."""
         return self.player_death(p1)
+    
+    def assign_boogey(self, players):
+        if all(x.is_hostile() for x in players):
+            return
+
+        chance = 128
+        while randint(1,128) <= chance:
+            boogey = choice(players)
+            if boogey.get_lives() != 1 and not boogey.is_boogey():
+                boogey.set_boogey()
+                sig.boogey_pick(boogey)
+                chance //= 2
+
+    def giveLife(p1, p2):
+        p1.set_lives(p1.get_lives() - 1)
+        p2.set_lives(p2.get_lives() + 1)

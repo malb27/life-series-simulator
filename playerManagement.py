@@ -16,6 +16,7 @@ class Player():
         self.alliance = None
         self.hostile = False
         self.kills = 0
+        self.boogey = False
 
     def set_lives(self, lives):
         self.lives = lives
@@ -45,6 +46,8 @@ class Player():
         self.hostile = hostile
 
     def is_hostile(self):
+        if self.boogey:
+            return True
         return self.hostile
 
     def get_kills(self):
@@ -63,6 +66,20 @@ class Player():
                 return True
             self.alliance = None
         return False
+    
+    def set_boogey(self):
+        self.boogey = True
+
+    def cure_boogey(self):
+        self.boogey = False
+
+    def is_boogey(self):
+        return self.boogey
+    
+    def boogey_bonus(self):
+        if self.boogey:
+            return 2
+        return 1
 
 
 class Alliance():
