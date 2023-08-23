@@ -19,7 +19,7 @@ ONE_PERSON = [
     "{p} places torches around the map.",
     "{p} spends far too long trying to get goat horns.",
     "{p} ruminates on their gameplan.",
-    "{p} think about their strategies to win.",
+    "{p} thinks about their strategies to win.",
 
     "{p} enchants their gear.",
     "{p} tends to their farm.",
@@ -32,6 +32,8 @@ ONE_PERSON = [
     "{p} organises their chests.",
     "{p} watches the sunset.",
     "{p} notes down their most dangerous opponents.",
+    "{p} sneaks through the deep dark.",
+    "{p} collects some skulk sensors.",
 ]
 
 ONE_GROUP = [
@@ -43,6 +45,7 @@ ONE_GROUP = [
 
     "{g} raid the server's nether fortress.",
     "{g} raid the woodland mansion.",
+    "{g} raid the deep dark.",
     "{g} talk about the other players.",
     "{g} discuss who they think will win.",
 ]

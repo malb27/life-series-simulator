@@ -4,13 +4,16 @@ Main simulator functionality.
 
 from random import randint, choice, choices, shuffle
 from math import ceil, floor
+from ctypes import windll
 
 from gameMap import Map
 from playerManagement import Player, Alliance, REL_CAP
-from rulesets import ThirdLife
+from rulesets import ThirdLife, LastLife
 from signallers import sig
 
 HOURS = 3
+
+windll.kernel32.SetConsoleTitleW("Life Series Simulator")
 
 class Game():
     """The actual simulator."""
@@ -117,7 +120,7 @@ class Game():
                 attacker = choice(winning)
                 sig.player_killed(player, attacker)
                 self.relationships[player.get_index()][attacker.get_index()] -= (randint(1,3)
-                    + (floor(REL_CAP/3) if player.get_alliance() is not None
+                    + (ceil(REL_CAP/4) if player.get_alliance() is not None
                        and player.get_alliance() == attacker.get_alliance()
                     else 0))
                 if self.rule.player_death(player):
@@ -276,7 +279,9 @@ class Game():
         sig.game_next_sesh(self.session)
         for _ in range(0, HOURS):
             if self.run_hour(self.map.allocate_sector(self.players)):
-                sig.stats_win(self.players[0])
+                winner = self.players[0] if len(self.players) > 0 else "...no one?! This is a bug, please screenshot your game and report it!"
+                #sig.stats_win(self.players[0])
+                sig.stats_win(winner)
                 sig.cont()
                 sig.stats_end(self.players, self.eliminated)
                 return True
@@ -321,24 +326,38 @@ class Game():
         side1 = list(side1)
         return side1, side2
 
-    # def start(self):
-    #     print("\n-- STARTING LIVES --")
-    #     for p in self.players:
-    #         print("{name}: {n} lives".format(name = p.get_name(), n = p.get_lives()))
+    def start(self):
+        # print("\n-- STARTING LIVES --")
+        # for p in self.players:
+        #     print("{name}: {n} lives".format(name = p.get_name(), n = p.get_lives()))
+        sig.lives(self.players)
+        sig.cont()
 
 
 if __name__ == "__main__":
     game = Game()
-    rule = ThirdLife(game)
-    game.set_rules(rule)
     sig.start()
     players = input("\nPlayers: ").split(", ") # Sanitise if frontend ever made
 
+    sig.ruleset()
+    rule = ThirdLife(game)
+    ruleset = input("\nRuleset: ").strip()
+    if ruleset == "TL":
+        rule = ThirdLife(game)
+    elif ruleset == "LL":
+        rule = LastLife(game)
+    else:
+        print("Invalid rule; defaulting to Third Life")
+    
+    game.set_rules(rule)
+
     for p in players:
-        game.add_player(p)
+        game.add_player(p.strip())
+
     game.init()
 
-    # game.start()
+    if ruleset == "LL":
+        game.start()
 
     while not game.run_day():
         continue

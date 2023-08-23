@@ -35,6 +35,7 @@ ONE_PERSON = [
     "{p} misclicked. ({p} blew up)",
     "{p} misjudged how long they could stay underwater. ({p} drowned)",
     "{p} broke the boat. ({p} was slain by Enderman)",
+    "{p} forgot to sneak. ({p} was slain by Warden)",
 ]
 
 ONE_GROUP = [
@@ -44,4 +45,5 @@ ONE_GROUP = [
     "{g} shouldn't have dug straight down.",
     "{g}'s mansion raid was a disaster.",
     "{g}'s nether raid was a disaster.",
+    "{g}'s deep dark raid was a disaster.",
 ]

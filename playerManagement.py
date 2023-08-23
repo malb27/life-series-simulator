@@ -104,9 +104,9 @@ class Alliance():
             for i, player in enumerate(self.members):
                 for j, target in enumerate(self.members):
                     rel = relations[player.get_index()][target.get_index()]
-                    individual[i] += rel
+                    #individual[i] += rel
                     perceptions[j] += rel
-                    overall += rel
+                    #overall += rel
 
             kicked = []
             leaving = []
@@ -115,20 +115,27 @@ class Alliance():
                 if val <= -1.5*len(self.members):
                     kicked.append(self.members[i])
 
-            for i, val in enumerate(individual):
-                if val < -1.5*len(self.members) and self.members[i] not in kicked:
-                    leaving.append(self.members[i])
-
-            if len(kicked) == 0 and len(leaving) == 0:
-                break
-
             for k in kicked:
                 k.leave_alliance([])
                 sig.alliance_kick(k, self.name)
 
+            for i, player in enumerate(self.members):
+                for j, target in enumerate(self.members):
+                    rel = relations[player.get_index()][target.get_index()]
+                    individual[i] += rel
+                    #perceptions[j] += rel
+                    overall += rel
+
+            for i, val in enumerate(individual):
+                if val < -1.5*len(self.members) and self.members[i] not in kicked:
+                    leaving.append(self.members[i])
+
             for i in leaving:
                 i.leave_alliance([])
                 sig.alliance_leave(i, self.name)
+
+            if len(kicked) == 0 and len(leaving) == 0:
+                break
 
             if len(self.members) <= 1:
                 return True

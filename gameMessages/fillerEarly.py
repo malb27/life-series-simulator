@@ -28,13 +28,13 @@ ONE_PERSON = [
     "{p} places torches around the map.",
     "{p} spends far too long trying to get goat horns.",
     "{p} ruminates on their gameplan.",
-    "{p} think about their strategies to win.",
+    "{p} thinks about their strategies to win.",
 ]
 
 ONE_GROUP = [
     "{g} start a bit.",
     "{g} clear some of the map to build.",
-    "{g} consider all being in an alliance together, but decide against it.",
+    "{g} consider being in an alliance together, but decide against it.",
 
     "{g} go caving together.",
     "{g} explore the map as a group.",

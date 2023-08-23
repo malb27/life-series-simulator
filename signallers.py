@@ -60,8 +60,20 @@ class CmdSigaller():
 
     def start(self):
         """Prints the startup message."""
-        print(CmdSigaller.colour(standMsg.WELCOME, bc.PURPLE))
+        print(CmdSigaller.colour(standMsg.WELCOME, bc.PURPLE), 
+              CmdSigaller.colour(standMsg.CREDIT, bc.GREY))
         print(standMsg.INSTRUCTIONS)
+    
+    def ruleset(self):
+        print(standMsg.RULESET)
+
+    def lives(self, players):
+        print(standMsg.STARTING_BANNER)
+        for player in players:
+            print(standMsg.STARTING.format(
+                p = CmdSigaller.get_name_string([player]),
+                n = player.get_lives(),
+            ))
 
     def alliance_create(self, members):
         """Prints the alliance creation message."""
