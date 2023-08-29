@@ -48,14 +48,14 @@ CHEST = {
 }
 
 BARREL = {
-    "set": "[~] {p} places barrel on top of an observer...",
+    "set": "[~] {p} places a barrel on top of an observer...",
     "disarm": "[=] {p2} break{s} the observer linked to {p}'s barrel.",
     "escape": "[=] {p2} open{s} {p}'s trapped barrel, but survive{s} the explosion.",
     "kill": "[-] {p2} {w} blown up by {p}'s trapped barrel"
 }
 
 BLOCK = {
-    "set": "[~] {p} places block on top of an observer...",
+    "set": "[~] {p} places a block on top of an observer...",
     "disarm": "[=] {p2} break{s} the observer linked to {p}'s block.",
     "escape": "[=] {p2} break{s} {p}'s trapped block, but survive{s} the explosion.",
     "kill": "[-] {p2} {w} blown up by {p}'s trapped block"

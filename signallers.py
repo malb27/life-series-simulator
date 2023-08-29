@@ -232,8 +232,8 @@ class CmdSigaller():
     def player_trap(self, template, player, target, kill):
         """Prints messages associated with traps being set off."""
         plural, plural2 = ('s', "was") if len(target) == 1 else ('', "were")
-        col = bc.DEATH if kill else bc.BLUE
-        print(CmdSigaller.colour(template, col)
+        col, tag, template = (bc.DEATH, template[:4], template[4:]) if kill else (bc.BLUE, "", template)
+        print(CmdSigaller.colour(tag*len(target) + template, col)
               .format(p = CmdSigaller.get_name_string([player]),
                       w = plural2,
                       s = plural,

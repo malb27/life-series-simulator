@@ -74,13 +74,14 @@ class LastLife():
         if all(x.is_hostile() for x in players):
             return
 
-        chance = 128
-        while randint(1,128) <= chance:
+        chance = len(players)//2 + 1
+        base = chance
+        while randint(1,base) <= chance:
             boogey = choice(players)
             if boogey.get_lives() != 1 and not boogey.is_boogey():
                 boogey.set_boogey()
                 sig.boogey_pick(boogey)
-                chance //= 2
+                chance = (chance/5) * 3
 
     def give_life(self, p1, p2):
         sig.life_trade(p1, p2)
