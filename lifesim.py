@@ -8,7 +8,7 @@ from ctypes import windll
 
 from gameMap import Map
 from playerManagement import Player, Alliance, REL_CAP
-from rulesets import ThirdLife, LastLife
+from rulesets import ThirdLife, LastLife, DoubleLife
 from signallers import sig
 
 HOURS = 4
@@ -33,6 +33,7 @@ class Game():
         self.relationships = [None] * len(self.players)
         for i in range(len(self.players)):
             self.relationships[i] = [0] * len(self.players)
+        self.rule.start(self.rule.assign_soulmates(self.players))
 
     def add_player(self, name): # Add support for stats later
         """Adds a new player to the roster."""
@@ -70,6 +71,10 @@ class Game():
         alliance = player.get_alliance()
         if player.leave_alliance(self.relationships): # Alliance has disbanded
             self.alliances.remove(alliance)
+        soulbound = player.get_soulbound()
+        if soulbound != None:
+            soulbound.set_soulbound(None)
+            self.player_elimination(soulbound)
 
     def generate_conflict_sides(self, attacker, defender, participants):
         """Sorts players into either side of a conflict using relationship values.
@@ -153,7 +158,7 @@ class Game():
 
     def generate_single_player_event(self, player):
         """Creates an event for a single player."""
-        if (player.get_alliance() is None):
+        if player.get_alliance() is None and player.get_lives() != 1:
                 max_val = max(self.relationships[player.get_index()])
                 indices = [i for i, val in enumerate(self.relationships[player.get_index()])
                                 if val == max_val]
@@ -257,7 +262,7 @@ class Game():
         if (len(participants) == 2 
             and participants[0].get_lives() > 2
             and participants[0].get_lives() > participants[1].get_lives() + 1
-            and randint(0, REL_CAP+1-self.relationships[participants[0].get_index()][participants[1].get_index()]) < participants[0].get_lives()
+            and randint(0, REL_CAP+1-self.relationships[participants[0].get_index()][participants[1].get_index()]) < participants[0].get_lives()*1.5
             and self.rule.give_life(participants[0], participants[1])):
             relation_update([participants[0]], [participants[1]], 1, [3,5])
             return
@@ -298,7 +303,6 @@ class Game():
         for _ in range(0, HOURS):
             if self.run_hour(self.map.allocate_sector(self.players)):
                 winner = self.players[0] if len(self.players) > 0 else "...no one?! This is a bug, please screenshot your game and report it!"
-                #sig.stats_win(self.players[0])
                 sig.stats_win(winner)
                 sig.cont()
                 sig.stats_end(self.players, self.eliminated)
@@ -323,8 +327,8 @@ class Game():
     def run_hour(self, sectors):
         """Run a single hour of the game."""
         for sector in sectors:
-            hostile = sector.get_hostile()
-            participants = sector.get_players()
+            hostile = [i for i in sector.get_hostile() if i not in self.eliminated]
+            participants = [i for i in sector.get_players() if i not in self.eliminated]
             if len(participants) == 0: # No players in sector
                 continue
             if len(hostile) == 0 or not self.generate_conflict(participants, hostile):
@@ -351,25 +355,38 @@ class Game():
         side1 = list(side1)
         return side1, side2
 
-    def start(self):
-        sig.lives(self.players)
-        sig.cont()
-
 
 if __name__ == "__main__":
     game = Game()
     sig.start()
-    players = input("\nPlayers: ").split(", ") # Sanitise if frontend ever made
+    valid = False
+    while not valid:
+        players = input("\nPlayers: ") # Sanitise if frontend ever made
+        if len(players) == 0 or players[0].isspace():
+            print("Empty player list - please enter at least one player")
+        else:
+            valid = True
+    players = players.split(", ")
 
     sig.ruleset()
     rule = ThirdLife(game)
-    ruleset = input("\nRuleset: ").strip()
-    if ruleset == "TL":
-        rule = ThirdLife(game)
-    elif ruleset == "LL":
-        rule = LastLife(game)
-    else:
-        print("Invalid rule; defaulting to Third Life")
+    
+    valid = False
+    while not valid:
+        valid = True
+        ruleset = input("\nRuleset: ").strip().lower()
+        if ruleset == "tl":
+            rule = ThirdLife(game)
+        elif ruleset == "ll":
+            rule = LastLife(game)
+        # elif ruleset == "DL":
+        #     if len(players) % 2:
+        #         print("Invalid number of players for Double Life!")
+        #         valid = False
+        #     else:
+        #         rule = DoubleLife(game)
+        else:
+            print("Invalid rule; defaulting to Third Life")
     
     game.set_rules(rule)
 
@@ -377,9 +394,6 @@ if __name__ == "__main__":
         game.add_player(p.strip())
 
     game.init()
-
-    if ruleset == "LL":
-        game.start()
 
     while not game.run_day():
         continue

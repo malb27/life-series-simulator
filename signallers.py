@@ -75,6 +75,14 @@ class CmdSigaller():
                 n = player.get_lives(),
             ))
 
+    def soulbounds(self, players):
+        print(standMsg.SOULBOUNDS_BANNER)
+        for player in players:
+            print(standMsg.SOULBOUNDS.format(
+                p1 = CmdSigaller.get_name_string([player]),
+                p2 = CmdSigaller.get_name_string([player.get_soulbound()]),
+            ))
+
     def boogey_pick(self, player):
         print(standMsg.BOOGEY_PICK.format(
             p = CmdSigaller.get_name_string([player])
@@ -221,8 +229,8 @@ class CmdSigaller():
     def player_killed(self, player, attacker):
         """Prints player killed message."""
         print(CmdSigaller.colour("[-]", bc.DEATH), choice(playerKill.KILLS)
-              .format(p1 = CmdSigaller.get_name_string([player]),
-                      p2 = CmdSigaller.get_name_string([attacker])))
+            .format(p1 = CmdSigaller.get_name_string([player]),
+                    p2 = CmdSigaller.get_name_string([attacker])))
 
     def player_red(self, player):
         """Prints player red message."""

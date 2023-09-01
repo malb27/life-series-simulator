@@ -3,9 +3,13 @@ CREDIT = "(Created by Towaka)"
 INSTRUCTIONS = """Enter a list of players separated by commas and spaces. Press ENTER to start the simulator.
 e.g. Player1, Player2, Player3"""
 RULESET = "\nEnter the ruleset for the simulation (Third Life (TL), Last Life (LL))"
+#RULESET = "\nEnter the ruleset for the simulation (Third Life (TL), Last Life (LL), Double Life (DL))"
 
 STARTING_BANNER = "\n-- STARTING LIVES --"
 STARTING = "{p}: {n} lives"
+
+SOULBOUNDS_BANNER = "\n-- SOULBOUNDS --"
+SOULBOUNDS = "{p1} == {p2}"
 
 ALLIANCE = "[+] {players} have made an alliance! {n}"
 ALLIANCE_JOIN = "[+] {p} has joined {alliance}!"

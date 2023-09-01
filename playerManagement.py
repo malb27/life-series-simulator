@@ -17,6 +17,7 @@ class Player():
         self.hostile = False
         self.kills = 0
         self.boogey = False
+        self.soulbound = None
 
     def set_lives(self, lives):
         self.lives = lives
@@ -80,6 +81,12 @@ class Player():
         if self.boogey:
             return 2
         return 1
+
+    def get_soulbound(self):
+        return self.soulbound
+    
+    def set_soulbound(self, soulbound):
+        self.soulbound = soulbound
 
 
 class Alliance():

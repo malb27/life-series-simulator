@@ -11,6 +11,9 @@ class ThirdLife():
     """
     def __init__(self, game):
         self.game = game
+    
+    def start(self, players):
+        pass
 
     def set_lives(self):
         """How many lives each player should have."""
@@ -38,6 +41,9 @@ class ThirdLife():
 
     def give_life(self, p1, p2):
         return False
+    
+    def assign_soulmates(self, players):
+        return players
 
 
 class LastLife():
@@ -46,6 +52,10 @@ class LastLife():
     """
     def __init__(self, game):
         self.game = game
+
+    def start(self, players):
+        sig.lives(players)
+        sig.cont()
 
     def set_lives(self):
         """How many lives each player should have."""
@@ -63,6 +73,10 @@ class LastLife():
             return True
         if p.get_lives() == 1:
             sig.player_red(p)
+            alliance = p.get_alliance()
+            if alliance != None:
+                sig.alliance_leave(p, alliance.get_name())
+                p.leave_alliance([])
             p.set_hostile(True)
         return False
 
@@ -90,3 +104,65 @@ class LastLife():
         if not p2.is_boogey():
             p2.set_hostile(False)
         return True
+    
+    def assign_soulmates(self, players):
+        return players
+    
+class DoubleLife():
+    """
+    Double Life ruleset.
+    """
+    def __init__(self, game):
+        self.game = game
+
+    def start(self, players):
+        sig.soulbounds(players)
+        sig.cont()
+
+    def set_lives(self):
+        """How many lives each player should have."""
+        return 3
+
+    def player_death(self, p):
+        """Handle player death."""
+        self.player_reduce_lives(p, 1)
+        return self.player_reduce_lives(p.get_soulbound(), 1)
+    
+    def player_reduce_lives(self, p, n):
+        if n == 0:
+            return
+        p.set_lives(p.get_lives() - n)
+        if p.get_lives() == 0:
+            return True
+        if p.get_lives() == 1:
+            sig.player_red(p)
+            p.set_hostile(True)
+        return False
+
+    def player_kill(self, p1):
+        """Handle player kills."""
+        return self.player_death(p1)
+    
+    def assign_boogey(self, players):
+        return
+
+    def give_life(self, p1, p2):
+        return False
+    
+    def assign_soulmates(self, players):
+        assigned = []
+        player_copy = players.copy()
+        while len(player_copy) > 0:
+            p = player_copy[0]
+            if p.get_soulbound() != None:
+                pass
+            assigned.append(p)
+            player_copy.remove(p)
+            soulbound = choice(players)
+            while soulbound.get_soulbound() != None or soulbound == p:
+                soulbound = choice(player_copy)
+            p.set_soulbound(soulbound)
+            soulbound.set_soulbound(p)
+            
+            player_copy.remove(soulbound)
+        return assigned
