@@ -18,6 +18,7 @@ MINPOS = [
     "{g} assist{s} in patching up some fire damage in {ally}'{s2} base.",
     "{g} make{s} a trade with {ally}.",
     "{g} host{s} a friendly conversation with {ally}.",
+    "{g} gives a some food to {ally}.",
 ]
 
 MINNEG = [

@@ -79,7 +79,7 @@ class Player():
     
     def boogey_bonus(self):
         if self.boogey:
-            return 2
+            return 1.5
         return 1
 
     def get_soulbound(self):

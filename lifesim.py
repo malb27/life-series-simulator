@@ -53,6 +53,9 @@ class Game():
 
         # Actual relation value can go over -5/5, but returned value is hard capped
         return min(REL_CAP, rel) if rel > 0 else max(-REL_CAP, rel)
+    
+    def get_relationships(self):
+        return self.relationships
 
     # Randomly decay relationships - move values closer to 0
     def decay_relationships(self):
@@ -126,7 +129,7 @@ class Game():
                 attacker = choice(winning)
                 sig.player_killed(player, attacker)
                 self.relationships[player.get_index()][attacker.get_index()] -= (randint(1,3)
-                    + (ceil(REL_CAP/4) if player.get_alliance() is not None
+                    + (ceil(REL_CAP/3) if player.get_alliance() is not None
                        and player.get_alliance() == attacker.get_alliance()
                     else 0))
                 if self.rule.player_death(player):
@@ -158,22 +161,32 @@ class Game():
 
     def generate_single_player_event(self, player):
         """Creates an event for a single player."""
-        if player.get_alliance() is None and player.get_lives() != 1:
-                max_val = max(self.relationships[player.get_index()])
-                indices = [i for i, val in enumerate(self.relationships[player.get_index()])
-                                if val == max_val]
-                shuffle(indices)
+        if player.get_alliance() is None:
+                indices = []
+                max_val = -REL_CAP
+                if player.get_lives() == 1:
+                    indices = [i for i, val in enumerate(self.relationships[player.get_index()])
+                                    if val >= 0]
+                    indices.sort()
+                    if len(indices) > 0:
+                        max_val = indices[0]
+                else:
+                    max_val = max(self.relationships[player.get_index()])
+                    indices = [i for i, val in enumerate(self.relationships[player.get_index()])
+                                    if val == max_val]
+                    shuffle(indices)
                 if (max_val > -ceil(REL_CAP/2) 
                         and (max_val >= ceil(REL_CAP/2) 
-                             or randint(0,ceil(REL_CAP/2)-max_val)) - floor(10/self.session) <= 0):
+                             or randint(0,ceil(REL_CAP/2)-max_val)) - floor(20/self.session) <= 0):
                     for index in indices:
                         alliance = self.all[index].get_alliance()
-                        if (alliance and len(alliance.get_members()) < ceil(len(self.players)/3)):
+                        if (alliance and (player.get_lives() != 1 or (player.get_lives() == 1 and alliance.get_members()[0].get_lives() == 1))
+                            and len(alliance.get_members()) < ceil(len(self.players)/3)):
                             sig.alliance_join(player, alliance.get_name())
                             player.set_alliance(alliance)
                             return
 
-        match randint(1,20):
+        match randint(1,25):
             case filler if player.get_lives() <= filler <= 1:
                 sig.player_death([player])
                 if self.rule.player_death(player):
@@ -182,7 +195,7 @@ class Game():
                 if (player.is_hostile() and randint(0,1) == 0):
                     sig.player_trap(self.map.set_trap(player), player, [], False)
                     return
-                if (len(self.eliminated) > 0 and randint(0,REL_CAP) == 0):
+                if (len(self.eliminated) > 0 and randint(0,REL_CAP*2) == 0):
                     sig.event_deadloot([player], choice(self.eliminated))
                     return
                 sig.filler([player], [], [], self.session)
@@ -249,7 +262,8 @@ class Game():
         # Create a new alliance.
         # Ensures an alliance between ALL surviving players cannot be made.
         if (len(self.players) > len(participants) and randint(0,HOURS-1) == 0
-                and all(p.get_alliance() is None for p in participants)):
+                and all(p.get_alliance() is None for p in participants)
+                and self.rule.can_ally(participants)):
             name = sig.alliance_create(participants)
             if name is not None:
                 ally = Alliance(name)
@@ -262,7 +276,7 @@ class Game():
         if (len(participants) == 2 
             and participants[0].get_lives() > 2
             and participants[0].get_lives() > participants[1].get_lives() + 1
-            and randint(0, REL_CAP+1-self.relationships[participants[0].get_index()][participants[1].get_index()]) < participants[0].get_lives()*1.5
+            and randint(0, REL_CAP+1-self.get_relationship(participants[0], participants[1])) < participants[0].get_lives()*1.5
             and self.rule.give_life(participants[0], participants[1])):
             relation_update([participants[0]], [participants[1]], 1, [3,5])
             return
@@ -272,7 +286,7 @@ class Game():
         side1, side2 = self.generate_sides(participants)
         match randint(1,15):
             case filler if 1 <= filler <= 5:
-                if (len(self.eliminated) > 0 and randint(0,REL_CAP) == 0):
+                if (len(self.eliminated) > 0 and randint(0,REL_CAP*2) == 0):
                     sig.event_deadloot(participants, choice(self.eliminated))
                     return
                 sig.filler(participants, side1, side2, self.session)
@@ -318,6 +332,12 @@ class Game():
                 sig.boogey_fail(player)
                 player.cure_boogey()
                 self.rule.player_reduce_lives(player, player.get_lives()-1)
+
+        # Final stability check
+        # move to function at later date
+        for alliance in self.alliances:
+            if alliance.disband(self.relationships):
+                self.alliances.remove(alliance)
                 
         sig.cont()
         sig.stats(self.players, self.alliances, self.session)

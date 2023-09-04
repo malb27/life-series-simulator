@@ -45,6 +45,9 @@ class ThirdLife():
     def assign_soulmates(self, players):
         return players
 
+    def can_ally(self, players):
+        return True
+
 
 class LastLife():
     """
@@ -103,10 +106,17 @@ class LastLife():
         p2.set_lives(p2.get_lives() + 1)
         if not p2.is_boogey():
             p2.set_hostile(False)
+        # push alliance leaving sig to alliance itself
+        if p2.get_lives() == 2 and p2.get_alliance() != None:
+                sig.alliance_leave(p2, p2.get_alliance().get_name())
+                p2.leave_alliance(self.game.get_relationships())
         return True
     
     def assign_soulmates(self, players):
         return players
+    
+    def can_ally(self, players):
+        return all(p.get_lives() == 1 for p in players) or all(p.get_lives() != 1 for p in players) 
     
 class DoubleLife():
     """
@@ -166,3 +176,6 @@ class DoubleLife():
             
             player_copy.remove(soulbound)
         return assigned
+    
+    def can_ally(self, players):
+        return True

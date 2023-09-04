@@ -9,6 +9,7 @@ FIRST = [
     "The Fun",
     "The Other",
     "The Travelling",
+    "The Distant",
 
     "The",
     "The",
@@ -57,6 +58,7 @@ FIRST = [
     "Withered",
     "Twisted",
     "Warped",
+    "Cursed",
 
     "Desert",
     "Swamp",
@@ -96,12 +98,14 @@ FIRST = [
     "Cactus",
     "Birch",
     "Oak",
+    "Dark Oak",
     "Spruce",
     "Moss",
     "Azalea",
     "Acacia",
     "Dripleaf",
     "Cherry Blossom",
+    "Mangrove",
 
     "Diamond",
     "Emerald",
@@ -111,6 +115,7 @@ FIRST = [
     "Obsidian",
     "Copper",
     "Amethyst",
+    "Redstone",
 ]
 
 SECOND = [
@@ -156,6 +161,7 @@ SECOND = [
     "Listeners",
     "Defenders",
     "Architects",
+    "Buttercups",
 
     "Coven",
     "Chorus",
@@ -185,6 +191,7 @@ SECOND = [
     "Crossbolts",
     "Arrows",
     "Circuits",
+    "Box",
 
     "Mischief",
     "Tangle",

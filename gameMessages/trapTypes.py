@@ -61,6 +61,13 @@ BLOCK = {
     "kill": "[-] {p2} {w} blown up by {p}'s trapped block"
 }
 
+STALAGMITE = {
+    "set": "[~] {p} places dripstone on a block...",
+    "disarm": "[=] {p2} break{s} {p}'s dripstone.",
+    "escape": "[=] {p2} fall{s} on {p}'s dripstone, but survive{s}.",
+    "kill": "[-] {p2} {w} impaled on a stalagmite, thanks to {p}"
+}
+
 TYPES = [
     MINECART,
     FALL,
@@ -71,4 +78,5 @@ TYPES = [
     CHEST,
     BARREL,
     BLOCK,
+    STALAGMITE,
 ]
