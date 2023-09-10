@@ -162,6 +162,7 @@ SECOND = [
     "Defenders",
     "Architects",
     "Buttercups",
+    "Perimeter",
 
     "Coven",
     "Chorus",

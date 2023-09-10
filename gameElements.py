@@ -16,8 +16,8 @@ class Trap():
     def __init__(self, player):
         self.player = player # Who set it?
         self.type = choice(TYPES) # Type of trap
-        self.stealth = randint(3, MAX_STEALTH) # How hidden is the trap
-        self.lethality = randint(3, MAX_LETHAL) # How lethal is it
+        self.stealth = randint(2, MAX_STEALTH) # How hidden is the trap
+        self.lethality = randint(2, MAX_LETHAL) # How lethal is it
 
     def set_message(self):
         """Return the message set used by this trap."""

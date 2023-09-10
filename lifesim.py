@@ -3,7 +3,7 @@ Main simulator functionality.
 """
 
 from random import randint, choice, choices, shuffle
-from math import ceil, floor
+from math import ceil, floor, log
 from ctypes import windll
 
 from gameMap import Map
@@ -13,7 +13,7 @@ from signallers import sig
 
 HOURS = 4
 
-windll.kernel32.SetConsoleTitleW("Life Series Simulator")
+windll.kernel32.SetConsoleTitleW("Life Series Simulator 1.1")
 
 class Game():
     """The actual simulator."""
@@ -135,7 +135,7 @@ class Game():
                 if self.rule.player_death(player):
                     self.player_elimination(player)
                 attacker.inc_kills()
-                if attacker.is_boogey():
+                if attacker.is_boogey() and player.get_lives() != 0:
                     attacker.cure_boogey()
                     sig.boogey_cure(attacker)
                     cured.append(attacker)
@@ -153,7 +153,7 @@ class Game():
                        else randint(0, REL_CAP+self.get_relationship(hostile, target))
                        - target.get_lives()
                        - floor((2*REL_CAP)/len(self.players)) * (3 if hostile.is_boogey() else 0))
-                if val <= 0 and hostile.get_index() != target.get_index():
+                if val <= 0 and hostile.get_index() != target.get_index() and (not hostile.is_boogey() or target.get_lives() > 1):
                     side1, side2 = self.generate_conflict_sides(hostile, target, participants)
                     self.battle(side1, side2)
                     return True
@@ -236,7 +236,7 @@ class Game():
                             self.player_elimination(player)
                         if setter != player:
                             setter.inc_kills()
-                            if setter.is_boogey():
+                            if setter.is_boogey() and player.get_lives() != 0:
                                 setter.cure_boogey()
                                 sig.boogey_cure(setter)
                 return
@@ -314,7 +314,7 @@ class Game():
         self.map.update_sectors(ceil(len(self.players)/2))
         sig.game_next_sesh(self.session)
         self.rule.assign_boogey(self.players)
-        for _ in range(0, HOURS):
+        for _ in range(0, floor(HOURS*(log(len(self.all)/(len(self.players)))+1))):
             if self.run_hour(self.map.allocate_sector(self.players)):
                 winner = self.players[0] if len(self.players) > 0 else "...no one?! This is a bug, please screenshot your game and report it!"
                 sig.stats_win(winner)
@@ -406,7 +406,8 @@ if __name__ == "__main__":
         #     else:
         #         rule = DoubleLife(game)
         else:
-            print("Invalid rule; defaulting to Third Life")
+            print("Invalid rule; please add a valid rule")
+            valid = False
     
     game.set_rules(rule)
 

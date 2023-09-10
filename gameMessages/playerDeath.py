@@ -33,7 +33,7 @@ ONE_PERSON = [
     "{p}'s nether raid went horribly wrong. ({p} was slain by Wither Skeleton)",
     "{p}'s nether raid went horribly wrong. ({p} was slain by Piglin Brute)",
     "{p}'s nether raid went horribly wrong. ({p} was shot by Piglin)",
-    "{p}'s nether raid went horribly wrong. ({p} was shot by Zombified Piglin)",
+    "{p}'s nether raid went horribly wrong. ({p} was slain by Zombified Piglin)",
     "{p}'s nether raid went horribly wrong. ({p} was slain by Hoglin)",
     "{p} was a bit too ambitious in the nether. ({p} withered away)",
     "{p} was a bit too ambitious in the nether. ({p} burned to death)",

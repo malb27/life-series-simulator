@@ -88,7 +88,7 @@ class LastLife():
         return self.player_death(p1)
     
     def assign_boogey(self, players):
-        if all(x.is_hostile() for x in players):
+        if all(x.is_hostile() for x in players) or len(list(filter(lambda x: x.get_lives() > 1, players))) < 2:
             return
 
         chance = len(players)//2 + 1
